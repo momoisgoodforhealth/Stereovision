@@ -6,7 +6,7 @@ import glob
 CHECKERBOARD = (10,10)
 subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
 calibration_flags = (cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_CHECK_COND+cv2.fisheye.CALIB_FIX_SKEW)
-objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float32)
+objp = np.zeros((1, CHECKERBOARD[0]*CHECKERBOARD[1], 3), np.float64)
 objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 _img_shape = None
 objpoints= []
@@ -123,13 +123,13 @@ print(objpoints)
 print(leftImagePoints)
 print(rightImagePoints)
 
-camera_matrixL=np.array(camera_matrixL,dtype=np.float64)
-camera_matrixR=np.array(camera_matrixR,dtype=np.float64)
-distortion_coeffL=np.array(distortion_coeffL,dtype=np.float64)
-distortion_coeffR=np.array(distortion_coeffR,dtype=np.float64)
+#camera_matrixL=np.array(camera_matrixL,dtype=np.float64)
+#camera_matrixR=np.array(camera_matrixR,dtype=np.float64)
+#distortion_coeffL=np.array(distortion_coeffL,dtype=np.float64)
+#distortion_coeffR=np.array(distortion_coeffR,dtype=np.float64)
 array=np.zeros((1, 1, 3), dtype=np.float64)
 cv2.fisheye.stereoCalibrate(
-            objectPoints=objpoints, imagePoints1= leftImagePoints,imagePoints2= rightImagePoints,
+            objectPoints=objpointsR, imagePoints1= leftImagePoints,imagePoints2= rightImagePoints,
           #objectPoints=objpointsL, imagePoints1= imgpointsL,imagePoints2= imgpointsR,
           #  K1=K1,D1=D1,K2=K2,D2=D2,
             K1=camera_matrixL,D1=distortion_coeffL,

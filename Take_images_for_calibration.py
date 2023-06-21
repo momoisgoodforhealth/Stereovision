@@ -8,11 +8,12 @@
 
 import numpy as np
 import cv2
+import time
 
 print('Starting the Calibration. Press and maintain the space bar to exit the script\n')
 print('Push (s) to save the image you want and push (c) to see next frame without saving the image')
 
-id_image=0
+id_image=184
 
 # termination criteria
 criteria =(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
@@ -20,8 +21,9 @@ criteria =(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 # Call the two cameras
 CamR= cv2.VideoCapture('rtsp://10.6.10.162/live_stream')   # 0 -> Right Camera
 CamL= cv2.VideoCapture('rtsp://10.6.10.161/live_stream')   # 2 -> Left Camera
-
-while True:
+time.sleep(7)
+while id_image<192:
+    time.sleep(1/3)
     retR, frameR= CamR.read()
     retL, frameL= CamL.read()
     grayR= cv2.cvtColor(frameR,cv2.COLOR_BGR2GRAY)

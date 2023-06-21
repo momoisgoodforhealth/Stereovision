@@ -11,7 +11,7 @@ objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 _img_shape = None
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
-images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\R\*.png')
+images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\L\*.png')
 for fname in images:
     img = cv2.imread(fname)
     if _img_shape == None:
@@ -44,7 +44,7 @@ rms, _, _, _, _ = \
         calibration_flags,
         (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
     )
-
+print("Reprojection Error="+ str(rms))
 print("Found " + str(N_OK) + " valid images for calibration")
 print("DIM=" + str(_img_shape[::-1]))
 print("K=np.array(" + str(K.tolist()) + ")")

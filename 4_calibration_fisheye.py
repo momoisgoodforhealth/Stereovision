@@ -34,24 +34,24 @@ import numpy as np
 
 
 # Global variables preset
-total_photos = 10
+total_photos = 1
 
 # Camera resolution
 photo_width = 1920
 photo_height = 1080
 
 # Image resolution for processing
-img_width = 320
-img_height = 240
+img_width = 1920
+img_height = 1080
 image_size = (img_width,img_height)
 
 # Chessboard parameters
-rows = 10
-columns = 10
+rows = 11
+columns = 11
 #square_size = 2.5
 
 # Visualization options
-drawCorners = False
+drawCorners = True
 showSingleCamUndistortionResults = True
 showStereoRectificationResults = True
 writeUdistortedImages = True
@@ -258,7 +258,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
             npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(res_y, right_or_left))
 
             list_of_vars = ['map1', 'map2', 'objpoints', 'imgpoints', 'camera_matrix', 'distortion_coeff']
-            print(sorted(npz_file.files))
+            print(sorted(npz_file.files)) 
 
             if sorted(list_of_vars) == sorted(npz_file.files):
                 print("Camera calibration data has been found in cache.")
@@ -364,7 +364,7 @@ if (showSingleCamUndistortionResults):
             print("Camera data file found but data corrupted.")
             exit(0)
     except:
-        print("Camera calibration data not found in cache, file " & './calibration_data/{}p/camera_calibration{}.npz'.format(h, left))
+        #print("Camera calibration data not found in cache, file " & './calibration_data/{}p/camera_calibration{}.npz'.format(h, left))
         exit(0)
 
     # We didn't load a new image from file, but use last image loaded while calibration
@@ -406,7 +406,7 @@ if (showStereoRectificationResults):
     try:
         npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
     except:
-        print("Camera calibration data not found in cache, file " & './calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
+       # print("Camera calibration data not found in cache, file " & './calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
         exit(0)
     
     leftMapX = npzfile['leftMapX']
