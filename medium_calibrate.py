@@ -11,7 +11,7 @@ objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
 _img_shape = None
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
-images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\L\*.png')
+images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\R\*.png')
 for fname in images:
     img = cv2.imread(fname)
     if _img_shape == None:

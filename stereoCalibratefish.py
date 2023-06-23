@@ -1,3 +1,4 @@
+# %%
 import cv2
 assert cv2.__version__[0] >= '3', 'The fisheye module requires opencv version >= 3.0.0'
 import numpy as np
@@ -14,8 +15,8 @@ objpointsL= []
 objpointsR= [] # 3d point in real world space
 imgpointsL = [] # 2d points in image plane.
 imgpointsR=[]
-imagesL = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\L\*.png')
-imagesR = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\R\*.png')
+imagesL = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\cleanL\*.png')
+imagesR = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\cleanR\*.png')
 
 
 
@@ -112,31 +113,32 @@ objp = np.zeros((board_area, 1, 3), np.float64)
 objp[:, 0, :2] = np.mgrid[0 : CHECKERBOARD[0], 0 : CHECKERBOARD[1]].T.reshape(-1, 2)
 
 objpoints = np.array([objp] * len(imgpointsL), dtype=np.float64)
-objpoints = np.reshape(objpoints, (N_OK, 1, board_area, 3))
+#objpoints = np.reshape(objpoints, (N_OK, 1, board_area, 3))
 #leftImagePoints = np.reshape(imgpointsL, (N_OK, 1, board_area, 2))
 #rightImagePoints = np.reshape(imgpointsR, (N_OK, 1, board_area, 2))
 objpointsL=np.array(objpointsL,dtype=np.float64)
 flags = 0
 flags |= cv2.CALIB_FIX_INTRINSIC
 CALIBRATE_FLAGS = flags #( cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + cv2.fisheye.CALIB_CHECK_COND + cv2.fisheye.CALIB_FIX_SKEW)
-print(objpoints)
-print(leftImagePoints)
-print(rightImagePoints)
 
-#camera_matrixL=np.array(camera_matrixL,dtype=np.float64)
-#camera_matrixR=np.array(camera_matrixR,dtype=np.float64)
-#distortion_coeffL=np.array(distortion_coeffL,dtype=np.float64)
-#distortion_coeffR=np.array(distortion_coeffR,dtype=np.float64)
-array=np.zeros((1, 1, 3), dtype=np.float64)
 cv2.fisheye.stereoCalibrate(
+                objpoints, leftImagePoints, rightImagePoints,
+            camera_matrixL, distortion_coeffL,
+            camera_matrixR, distortion_coeffR,
+            (1920,1080), None, None,
+            cv2.CALIB_FIX_INTRINSIC, TERMINATION_CRITERIA)
+print("ok...")
+
+'''
             objectPoints=objpointsR, imagePoints1= leftImagePoints,imagePoints2= rightImagePoints,
           #objectPoints=objpointsL, imagePoints1= imgpointsL,imagePoints2= imgpointsR,
           #  K1=K1,D1=D1,K2=K2,D2=D2,
             K1=camera_matrixL,D1=distortion_coeffL,
            K2=camera_matrixR, D2=distortion_coeffR,
-            imageSize= gray.shape[::-1], R=None, T=None,
-            flags=cv2.CALIB_FIX_INTRINSIC, criteria=TERMINATION_CRITERIA)
+            imageSize= (1920,1080), #R=R, T=T,
+            flags=cv2.CALIB_FIX_INTRINSIC, criteria=TERMINATION_CRITERIA)'''
 print("ok...")
+# %%
 """
 
 print("Found " + str(N_OK) + " valid images for calibration")

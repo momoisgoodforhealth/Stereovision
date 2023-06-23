@@ -19,7 +19,7 @@ objp[:,:2] = np.mgrid[0:10,0:10].T.reshape(-1,2)
 img_ptsL = []
 img_ptsR = []
 obj_pts = []
-for i in tqdm(range(1,12)):
+for i in tqdm(range(35,180)):
   imgL = cv2.imread(pathL+"chessboard-L%d.png"%i)
   imgR = cv2.imread(pathR+"chessboard-R%d.png"%i)
   imgL_gray = cv2.imread(pathL+"chessboard-L%d.png"%i,0)
@@ -53,39 +53,21 @@ rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
 tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
 
 # Calibrating left camera
-#retL, mtxL, distL, rvecsL, tvecsL = cv2.calibrateCamera(obj_pts,img_ptsL,imgL_gray.shape[::-1],None,None)
-cv2.fisheye.calibrate(
-        obj_pts,
-        img_ptsL,
-        imgL_gray.shape[::-1],
-        K1,
-        D1,
-        rvecs,
-        tvecs,
-        calibration_flags,
-        (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
-
+retL, mtxL, distL, rvecsL, tvecsL = cv2.calibrateCamera(obj_pts,img_ptsL,imgL_gray.shape[::-1],None,None)
+cv2.fisheye.calibrate(obj_pts,img_ptsL,imgL_gray.shape[::-1],K1,D1,rvecs,tvecs,calibration_flags,(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
+  
 
 hL,wL= imgL_gray.shape[:2]
-#new_mtxL, roiL= cv2.getOptimalNewCameraMatrix(mtxL,distL,(wL,hL),1,(wL,hL))
+new_mtxL, roiL= cv2.getOptimalNewCameraMatrix(mtxL,distL,(wL,hL),1,(wL,hL))
 
 # Calibrating right camera
-#retR, mtxR, distR, rvecsR, tvecsR = cv2.calibrateCamera(obj_pts,img_ptsR,imgR_gray.shape[::-1],None,None)
-cv2.fisheye.calibrate(
-        obj_pts,
-        img_ptsR,
-        imgR_gray.shape[::-1],
-        K2,
-        D2,
-        rvecs,
-        tvecs,
-        calibration_flags,
-        (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
+retR, mtxR, distR, rvecsR, tvecsR = cv2.calibrateCamera(obj_pts,img_ptsR,imgR_gray.shape[::-1],None,None)
+cv2.fisheye.calibrate(obj_pts,img_ptsR,imgR_gray.shape[::-1],K2,D2,rvecs,tvecs,calibration_flags,(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
 
 #print(cv2.fisheye.stereoCalibrate(obj_pts, img_ptsL, img_ptsR, K1,D1,K2,D2, new_mtxL, distL, new_mtxR, distR, imgL_gray.shape[::-1], criteria_stereo, flags))
-"""
+
 hR,wR= imgR_gray.shape[:2]
-#new_mtxR, roiR= cv2.getOptimalNewCameraMatrix(mtxR,distR,(wR,hR),1,(wR,hR))
+new_mtxR, roiR= cv2.getOptimalNewCameraMatrix(mtxR,distR,(wR,hR),1,(wR,hR))
 
 flags = 0
 flags |= cv2.CALIB_FIX_INTRINSIC
@@ -101,8 +83,8 @@ print(cv2.fisheye.stereoCalibrate(obj_pts, img_ptsL, img_ptsR, K1,D1,K2,D2, new_
 rectify_scale= 1
 
 
-#rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR= cv2.stereoRectify(new_mtxL, distL, new_mtxR, distR, imgL_gray.shape[::-1], Rot, Trns, rectify_scale,(0,0))
-rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR= cv2.fisheye.stereoRectify(K1,D1,K2,D2,new_mtxL, distL, new_mtxR, distR, imgL_gray.shape[::-1], Rot, Trns, rectify_scale,(0,0))
+rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR= cv2.stereoRectify(new_mtxL, distL, new_mtxR, distR, imgL_gray.shape[::-1], Rot, Trns, rectify_scale,(0,0))
+#rect_l, rect_r, proj_mat_l, proj_mat_r, Q, roiL, roiR= cv2.fisheye.stereoRectify(K1,D1,K2,D2,new_mtxL, distL, new_mtxR, distR, imgL_gray.shape[::-1], Rot, Trns, rectify_scale,(0,0))
 
 
 
@@ -118,4 +100,3 @@ cv_file.write("Left_Stereo_Map_y",Left_Stereo_Map[1])
 cv_file.write("Right_Stereo_Map_x",Right_Stereo_Map[0])
 cv_file.write("Right_Stereo_Map_y",Right_Stereo_Map[1])
 cv_file.release()
-"""

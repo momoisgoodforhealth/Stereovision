@@ -22,8 +22,8 @@ cv_file.release()
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread('onemLu.png', cv2.IMREAD_GRAYSCALE)
-    imgR= cv2.imread('onemRu.png', cv2.IMREAD_GRAYSCALE)
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\trucL.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\trucR.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
