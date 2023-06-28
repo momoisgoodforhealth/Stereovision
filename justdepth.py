@@ -9,8 +9,23 @@ from matplotlib import pyplot as plt
 #CamL= cv2.VideoCapture(CamL_id)
 #CamR= cv2.VideoCapture(CamR_id)
  
+baseline=100
+focal_length= 4.77424789e+02
+#Q=[[ 1.00000000e+00  0.00000000e+00  0.00000000e+00 -1.24098755e+03]
+#   [ 0.00000000e+00  1.00000000e+00  0.00000000e+00 -1.07122999e+03]
+#   [ 0.00000000e+00  0.00000000e+00  0.00000000e+00  4.77424789e+02]
+#   [ 0.00000000e+00  0.00000000e+00  9.03260810e-03 -0.00000000e+00]]
+
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.07952681e+01],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -1.54576640e+03],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.16574783e+02],
+ [ 0.00000000e+00,  0.00000000e+00, -2.16772271e-02,  0.00000000e+00]])
+
+
+
+
 # Reading the mapping values for stereo image rectification
-cv_file = cv2.FileStorage("improved_params2.xml", cv2.FILE_STORAGE_READ)
+cv_file = cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
 Left_Stereo_Map_x = cv_file.getNode("Left_Stereo_Map_x").mat()
 Left_Stereo_Map_y = cv_file.getNode("Left_Stereo_Map_y").mat()
 Right_Stereo_Map_x = cv_file.getNode("Right_Stereo_Map_x").mat()
@@ -22,8 +37,8 @@ cv_file.release()
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\trucL.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\trucR.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemlu.png', cv2.IMREAD_GRAYSCALE)[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemru.png', cv2.IMREAD_GRAYSCALE)[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
@@ -48,6 +63,9 @@ while True:
     
     # computes disparity
     disparity = stereo.compute(imgL, imgR)#.astype(np.float32) / 16.0
+
+    distance = (baseline * focal_length) / disparity
+
     dispL=disparity
     stereoR=cv2.ximgproc.createRightMatcher(stereo)
 
@@ -71,7 +89,7 @@ while True:
     disp= ((disparity.astype(np.float32)/ 16)-2)/128 # Calculation allowing us to have 0 for the most distant object able to detect
 
     ##    # Resize the image for faster executions
-    dispR= cv2.resize(disp,None,fx=0.7, fy=0.7, interpolation = cv2.INTER_AREA)
+    #dispR= cv2.resize(disp,None,fx=0.7, fy=0.7, interpolation = cv2.INTER_AREA)
 
         # Filtering the Results with a closing filter
     kernel= np.ones((3,3),np.uint8)
@@ -82,15 +100,23 @@ while True:
     dispC= dispc.astype(np.uint8)                                   # Convert the type of the matrix from float32 to uint8, this way you can show the results with the function cv2.imshow()
     disp_Color= cv2.applyColorMap(dispC,cv2.COLORMAP_OCEAN)         # Change the Color of the Picture into an Ocean Color_Map
     filt_Color= cv2.applyColorMap(filteredImg,cv2.COLORMAP_OCEAN) 
-
+    print("filt color shape="+str(filt_Color.shape))
+    print("dispC shape="+str(dispC.shape))
+    print("distance shape="+str(distance.shape))
         # Show the result for the Depth_image
         #cv2.imshow('Disparity', disp)
         #cv2.imshow('Closing',closing)
         #cv2.imshow('Color Depth',disp_Color)
+
+
+
+    points=cv2.reprojectImageTo3D(dispC, Q)
+
+    """
     def coords_mouse_disp(event,x,y,flags,param):
         average=0
         Distance=0
-        if event == cv2.EVENT_LBUTTONDBLCLK:
+        if event == cv2.EVENT_LBUTTONDBLCLK:n
             #print x,y,disp[y,x],filteredImg[y,x]
             average=0
             for u in range (-1,2):
@@ -101,6 +127,27 @@ while True:
             Distance= np.around(Distance*0.01,decimals=2)
             print('Distance: '+ str(Distance)+' m')
         return 'Distance: '+ str(Distance)+' m'
+    """
+
+    def mouse_click(event, x, y, flags, param): 
+        # to check if left mouse 
+        # button was clicked
+        if event == cv2.EVENT_LBUTTONDOWN:
+          
+        # font for left click event
+            
+            font = cv2.FONT_HERSHEY_DUPLEX
+            LB = 'Left Button'
+          
+        # display that left button 
+        # was clicked.
+            cv2.putText(filt_Color, str(points[y, x]), (x, y), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(filt_Color, str(distance[x,y])+"mm", (x, y-14), font, 0.4, (0, 0, 255), 2) 
+            #cv2.resize(filt_Color, (500, 700))
+            cv2.imshow('Filtered Color Depth', filt_Color)
+            cv2.waitKey(0)
+
+    
     """
     font                   = cv2.FONT_HERSHEY_SIMPLEX
     bottomLeftCornerOfText = (10,500)
@@ -118,8 +165,10 @@ while True:
     lineType)
     """
     cv2.imshow('Filtered Color Depth',filt_Color)
+    
+    cv2.setMouseCallback("Filtered Color Depth", mouse_click)
 
-    cv2.setMouseCallback("Filtered Color Depth",coords_mouse_disp,filt_Color)
+    #cv2.setMouseCallback("Filtered Color Depth",coords_mouse_disp,filt_Color)
 
         # Mouse click
     
