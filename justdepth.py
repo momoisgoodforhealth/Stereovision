@@ -21,7 +21,15 @@ Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.07952681e+0
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  9.16574783e+02],
  [ 0.00000000e+00,  0.00000000e+00, -2.16772271e-02,  0.00000000e+00]])
 
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -2.67034456e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -1.03445789e+03],
+ [ 0.00000000e+00,  0.00000000e+00 , 0.00000000e+00,  9.16584610e+02],
+ [ 0.00000000e+00,  0.00000000e+00, -8.44895915e-04,  0.00000000e+00]])
 
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -1.47927154e+03],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -6.69240590e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.60831146e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  1.27373443e-03, -0.00000000e+00]])
 
 
 # Reading the mapping values for stereo image rectification
@@ -32,13 +40,19 @@ Right_Stereo_Map_x = cv_file.getNode("Right_Stereo_Map_x").mat()
 Right_Stereo_Map_y = cv_file.getNode("Right_Stereo_Map_y").mat()
 cv_file.release()
  
-
+def write_ply(fn, verts, colors):
+    verts = verts.reshape(-1, 3)
+    colors = colors.reshape(-1, 3)
+    verts = np.hstack([verts, colors])
+    with open(fn, 'wb') as f:
+        f.write((ply_header % dict(vert_num=len(verts))).encode('utf-8'))
+        np.savetxt(f, verts, fmt='%f %f %f %d %d %d ')
 
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemlu.png', cv2.IMREAD_GRAYSCALE)[60:900, 230:1500]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemru.png', cv2.IMREAD_GRAYSCALE)[60:900, 230:1500]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemlu.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemru.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
@@ -111,6 +125,45 @@ while True:
 
 
     points=cv2.reprojectImageTo3D(dispC, Q)
+    #file1 = open("points.txt","w")
+    #for x in points:
+    #    print()
+    #    for y in x:
+    #        for z in y:
+                
+    #file1.close()
+    print(points.shape)
+    print(points)
+
+
+    ply_header = '''ply
+format ascii 1.0
+element vertex %(vert_num)d
+property float x
+property float y
+property float z
+property uchar red
+property uchar green
+property uchar blue
+end_header
+'''
+
+
+
+    print('generating 3d point cloud...',)
+    points=cv2.reprojectImageTo3D(dispC, Q)
+    print(points.shape)
+    #print(points)
+    #points = cv2.reprojectImageTo3D(dispC, Q)
+    colors = cv2.cvtColor(filteredImg, cv2.COLOR_BGR2RGB)
+    mask = dispC > dispC.min()
+    out_points = points[mask]
+    out_colors = colors[mask]
+    out_fn = 'out.ply'
+    #write_ply(out_fn, out_points, out_colors)
+    #print('%s saved' % out_fn)
+
+
 
     """
     def coords_mouse_disp(event,x,y,flags,param):
@@ -141,8 +194,9 @@ while True:
           
         # display that left button 
         # was clicked.
-            cv2.putText(filt_Color, str(points[y, x]), (x, y), font, 0.4, (0, 0, 255), 2) 
-            cv2.putText(filt_Color, str(distance[x,y])+"mm", (x, y-14), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(filt_Color, str((x,y)), (x, y), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(filt_Color, str(points[y, x]), (x, y-14), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(filt_Color, str(distance[y,x])+"mm", (x, y-28), font, 0.4, (0, 0, 255), 2) 
             #cv2.resize(filt_Color, (500, 700))
             cv2.imshow('Filtered Color Depth', filt_Color)
             cv2.waitKey(0)
@@ -164,6 +218,10 @@ while True:
     thickness,
     lineType)
     """
+    cv2.imwrite('sc.png',filt_Color)
+    cv2.rectangle(filt_Color, (30, 30), (300, 200), (0, 255, 0), 5)
+    cv2.circle(filt_Color, (200, 200), 80, (255, 0, 0), 3)
+    cv2.imwrite('sc2.png',filt_Color)
     cv2.imshow('Filtered Color Depth',filt_Color)
     
     cv2.setMouseCallback("Filtered Color Depth", mouse_click)

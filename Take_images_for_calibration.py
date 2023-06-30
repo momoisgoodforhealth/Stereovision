@@ -13,7 +13,7 @@ import time
 print('Starting the Calibration. Press and maintain the space bar to exit the script\n')
 print('Push (s) to save the image you want and push (c) to see next frame without saving the image')
 
-id_image=70
+id_image=35
 # termination criteria
 criteria =(cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 time.sleep(7)
@@ -21,7 +21,7 @@ time.sleep(7)
 CamR= cv2.VideoCapture('rtsp://10.6.10.162/live_stream')   # 0 -> Right Camera
 CamL= cv2.VideoCapture('rtsp://10.6.10.161/live_stream')   # 2 -> Left Camera
 
-while id_image<74:
+while id_image<41:
     time.sleep(1)
     retR, frameR= CamR.read()
     retL, frameL= CamL.read()
@@ -48,8 +48,8 @@ while id_image<74:
         if cv2.waitKey(0) & 0xFF == ord('s'):   # Push "s" to save the images and "c" if you don't want to
             str_id_image= str(id_image)
             print('Images ' + str_id_image + ' saved for right and left cameras')
-            cv2.imwrite('chessboardd-R'+str_id_image+'.png',frameR) # Save the image in the file where this Programm is located
-            cv2.imwrite('chessboardd-L'+str_id_image+'.png',frameL)
+            cv2.imwrite('chessboarddd-R'+str_id_image+'.png',frameR) # Save the image in the file where this Programm is located
+            cv2.imwrite('chessboarddd-L'+str_id_image+'.png',frameL)
             id_image=id_image+1
         else:
             print('Images not saved')

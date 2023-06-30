@@ -122,7 +122,7 @@ flags |= cv2.CALIB_FIX_INTRINSIC
 CALIBRATE_FLAGS = flags #( cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC + cv2.fisheye.CALIB_CHECK_COND + cv2.fisheye.CALIB_FIX_SKEW)
 
 cv2.fisheye.stereoCalibrate(
-                objpoints, leftImagePoints, rightImagePoints,
+            objpoints, leftImagePoints, rightImagePoints,
             camera_matrixL, distortion_coeffL,
             camera_matrixR, distortion_coeffR,
             (1920,1080), None, None,
