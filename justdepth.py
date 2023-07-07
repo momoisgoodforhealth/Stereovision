@@ -31,6 +31,16 @@ Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -1.47927154e+0
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.60831146e+02],
  [ 0.00000000e+00,  0.00000000e+00,  1.27373443e-03, -0.00000000e+00]])
 
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00,  6.51067677e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00,  4.89214800e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  1.19511214e+03],
+ [ 0.00000000e+00,  0.00000000e+00, -4.65810195e-04,  0.00000000e+00]])
+
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -7.35440018e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00,  3.13250813e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.75119324e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  1.29620082e+08, -0.00000000e+00]])
+
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
@@ -51,8 +61,8 @@ def write_ply(fn, verts, colors):
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemlu.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemru.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishLL.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishRR.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
@@ -72,8 +82,7 @@ while True:
         
 
     # creates StereoBm object 
-    stereo = cv2.StereoSGBM_create(numDisparities =160,
-                                blockSize =1)
+    stereo = cv2.StereoSGBM_create(numDisparities =160, blockSize =1)
     
     # computes disparity
     disparity = stereo.compute(imgL, imgR)#.astype(np.float32) / 16.0
@@ -160,8 +169,8 @@ end_header
     out_points = points[mask]
     out_colors = colors[mask]
     out_fn = 'out.ply'
-    #write_ply(out_fn, out_points, out_colors)
-    #print('%s saved' % out_fn)
+    write_ply(out_fn, out_points, out_colors)
+    print('%s saved' % out_fn)
 
 
 
@@ -218,10 +227,10 @@ end_header
     thickness,
     lineType)
     """
-    cv2.imwrite('sc.png',filt_Color)
-    cv2.rectangle(filt_Color, (30, 30), (300, 200), (0, 255, 0), 5)
-    cv2.circle(filt_Color, (200, 200), 80, (255, 0, 0), 3)
-    cv2.imwrite('sc2.png',filt_Color)
+    #cv2.imwrite('sc.png',filt_Color)
+    #cv2.rectangle(filt_Color, (30, 30), (300, 200), (0, 255, 0), 5)
+    #cv2.circle(filt_Color, (200, 200), 80, (255, 0, 0), 3)
+    #cv2.imwrite('sc2.png',filt_Color)
     cv2.imshow('Filtered Color Depth',filt_Color)
     
     cv2.setMouseCallback("Filtered Color Depth", mouse_click)

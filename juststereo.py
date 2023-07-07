@@ -6,11 +6,12 @@ import os
 import glob
 
 # Set the path to the images captured by the left and right cameras
-pathL = "./LLL/"
-pathR = "./RRR/"
+pathL = "./LU/"
+pathR = "./RU/"
  
 # Termination criteria for refining the detected corners
-criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+#subpix_criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
+criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 150, 0.001)
 calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_CHECK_COND+cv2.fisheye.CALIB_FIX_SKEW 
  
 objp = np.zeros((10*10,3), np.float32)
@@ -19,11 +20,11 @@ objp[:,:2] = np.mgrid[0:10,0:10].T.reshape(-1,2)*25.4 # 25.4 mm (1 inch) size of
 img_ptsL = []
 img_ptsR = []
 obj_pts = []
-for i in tqdm(range(1,36)):
-  imgL = cv2.imread(pathL+"chessboarddd-L%d.png"%i)
-  imgR = cv2.imread(pathR+"chessboarddd-R%d.png"%i)
-  imgL_gray = cv2.imread(pathL+"chessboarddd-L%d.png"%i,0)
-  imgR_gray = cv2.imread(pathR+"chessboarddd-R%d.png"%i,0)
+for i in tqdm(range(1,23)):
+  imgL = cv2.imread(pathL+"l%d.png"%i)
+  imgR = cv2.imread(pathR+"r%d.png"%i)
+  imgL_gray = cv2.imread(pathL+"l%d.png"%i,0)
+  imgR_gray = cv2.imread(pathR+"r%d.png"%i,0)  
  
   outputL = imgL.copy()
   outputR = imgR.copy()
@@ -78,7 +79,7 @@ flags |= cv2.CALIB_FIX_INTRINSIC
 # Here we fix the intrinsic camara matrixes so that only Rot, Trns, Emat and Fmat are calculated.
 # Hence intrinsic parameters are the same 
  
-criteria_stereo= (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
+criteria_stereo= (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
  
  
 # This step is performed to transformation between the two cameras and calculate Essential and Fundamenatl matrix

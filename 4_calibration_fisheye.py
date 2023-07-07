@@ -34,7 +34,7 @@ import numpy as np
 
 
 # Global variables preset
-total_photos = 1
+
 
 # Camera resolution
 photo_width = 1920
@@ -64,7 +64,7 @@ subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
 calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_FIX_SKEW
 
 objp = np.zeros( (CHECKERBOARD[0]*CHECKERBOARD[1], 1, 3) , np.float64)
-objp[:,0, :2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)
+objp[:,0, :2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)*25.4 # 25.4 mm (1 inch) size of square
 
 _img_shape = None
 objpointsLeft = [] # 3d point in real world space
@@ -80,14 +80,15 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-photo_counter = 0
+total_photos = 2
+photo_counter = 1
 print ('Main cycle start')
 
 while photo_counter != total_photos:
   photo_counter = photo_counter + 1
   print ('Import pair No ' + str(photo_counter))
-  leftName = './L/chessboard-L'+str(photo_counter)+'.png'
-  rightName = './R/chessboard-R'+str(photo_counter)+'.png'
+  leftName = './2/'+str(photo_counter)+'.png'
+  rightName = './1/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
   
@@ -124,7 +125,7 @@ while photo_counter != total_photos:
       # error:(-215:Assertion failed) fabs(norm_u1) > 0 in function 'InitExtrinsics'
       # It means corners are too close to the side of the image. Let's filter them out
       
-      SayMore = False; #Should we print additional debug info?
+      SayMore = True; #Should we print additional debug info?
       if ((retL == True) and (retR == True)):
           minRx = cornersR[:,:,0].min()
           maxRx = cornersR[:,:,0].max()
@@ -287,6 +288,13 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
     rightImagePoints = np.asarray(rightImagePoints, dtype=np.float64)
 
     # Stereo calibration
+
+    CALIBRATE_FLAGS = (
+    cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC
+    #+ cv2.fisheye.CALIB_CHECK_COND
+    + cv2.fisheye.CALIB_FIX_SKEW
+) #cv2.CALIB_FIX_INTRINSIC
+    
     (RMS, _, _, _, _, rotationMatrix, translationVector) = cv2.fisheye.stereoCalibrate(
             objectPoints, leftImagePoints, rightImagePoints,
             leftCameraMatrix, leftDistortionCoefficients,
