@@ -80,18 +80,18 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 2
+total_photos = 4
 photo_counter = 1
 print ('Main cycle start')
 
 while photo_counter != total_photos:
-  photo_counter = photo_counter + 1
+  
   print ('Import pair No ' + str(photo_counter))
-  leftName = './2/'+str(photo_counter)+'.png'
-  rightName = './1/'+str(photo_counter)+'.png'
+  leftName = './22/'+str(photo_counter)+'.png'
+  rightName = './11/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
-  
+  photo_counter = photo_counter + 1
   # If pair has no left or right image - exit
   if ((leftExists == False) or (rightExists == False)) and (leftExists != rightExists):
       print ("Pair No ", photo_counter, "has only one image! Left:", leftExists, " Right:", rightExists )
@@ -117,9 +117,9 @@ while photo_counter != total_photos:
           cv2.imshow('Corners LEFT', imgL)
           cv2.drawChessboardCorners(imgR, (10,10), cornersR, retR)
           cv2.imshow('Corners RIGHT', imgR)
-          key = cv2.waitKey(0)
-          if key == ord("q"):
-              exit(0)
+          cv2.waitKey(0)
+          #if key == ord("q"):
+          #    exit(0)
 
       # Here is a fix for the OpenCV bug, which is causing this error:
       # error:(-215:Assertion failed) fabs(norm_u1) > 0 in function 'InitExtrinsics'

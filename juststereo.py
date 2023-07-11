@@ -20,7 +20,7 @@ objp[:,:2] = np.mgrid[0:10,0:10].T.reshape(-1,2)*25.4 # 25.4 mm (1 inch) size of
 img_ptsL = []
 img_ptsR = []
 obj_pts = []
-for i in tqdm(range(1,23)):
+for i in tqdm(range(1,8)):
   imgL = cv2.imread(pathL+"l%d.png"%i)
   imgR = cv2.imread(pathR+"r%d.png"%i)
   imgL_gray = cv2.imread(pathL+"l%d.png"%i,0)
@@ -40,7 +40,7 @@ for i in tqdm(range(1,23)):
     cv2.drawChessboardCorners(outputL,(10,10),cornersL,retL)
     cv2.imshow('cornersR',outputR)
     cv2.imshow('cornersL',outputL)
-    cv2.waitKey(0)
+    cv2.waitKey(0) 
  
     img_ptsL.append(cornersL)
     img_ptsR.append(cornersR)
@@ -64,8 +64,12 @@ print("retL="+str(retL))
 hL,wL= imgL_gray.shape[:2]
 new_mtxL, roiL= cv2.getOptimalNewCameraMatrix(mtxL,distL,(wL,hL),1,(wL,hL))
 
+dst = cv2.undistort(imgL_gray, mtxL, distL, None, new_mtxL)
+cv2.imwrite('cakib.png',dst)
+
 # Calibrating right camera
 retR, mtxR, distR, rvecsR, tvecsR = cv2.calibrateCamera(obj_pts,img_ptsR,imgR_gray.shape[::-1],None,None)
+
 print("retR="+str(retR))
 #cv2.fisheye.calibrate(obj_pts,img_ptsR,imgR_gray.shape[::-1],K2,D2,rvecs,tvecs,calibration_flags,(cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6))
 
@@ -73,6 +77,10 @@ print("retR="+str(retR))
 
 hR,wR= imgR_gray.shape[:2]
 new_mtxR, roiR= cv2.getOptimalNewCameraMatrix(mtxR,distR,(wR,hR),1,(wR,hR))
+
+
+dst = cv2.undistort(imgR_gray, mtxR, distR, None, new_mtxR)
+cv2.imwrite('cakibR.png',dst)
 
 flags = 0
 flags |= cv2.CALIB_FIX_INTRINSIC

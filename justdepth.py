@@ -41,6 +41,11 @@ Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -7.35440018e+0
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.75119324e+02],
  [ 0.00000000e+00,  0.00000000e+00,  1.29620082e+08, -0.00000000e+00]])
 
+Q=np.float32=([[ 1.00000000e+00,  0.00000000e+00 , 0.00000000e+00 ,-6.43447407e+02],
+ [ 0.00000000e+00 , 1.00000000e+00,  0.00000000e+00, -6.47744417e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.06869370e+02],
+ [ 0.00000000e+00,  0.00000000e+00 ,-4.21595460e-03,  0.00000000e+00]])
+
 
 # Reading the mapping values for stereo image rectification
 cv_file = cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
@@ -61,8 +66,8 @@ def write_ply(fn, verts, colors):
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishLL.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishRR.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\LU\l1.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\RU\r1.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
@@ -79,20 +84,27 @@ while True:
                 cv2.INTER_LANCZOS4,
                 cv2.BORDER_CONSTANT,
                 0)
+    
+    cv2.imshow('left nice',Left_nice)
+    cv2.imshow('right nice',Right_nice)
+    cv2.waitKey(0)
+        
         
 
     # creates StereoBm object 
     stereo = cv2.StereoSGBM_create(numDisparities =160, blockSize =1)
     
     # computes disparity
-    disparity = stereo.compute(imgL, imgR)#.astype(np.float32) / 16.0
+    disparity = stereo.compute(Left_nice, Right_nice)#.astype(np.float32) / 16.0
 
     distance = (baseline * focal_length) / disparity
 
     dispL=disparity
+    cv2.imshow('sd',disparity)
+    cv2.waitKey(0)
     stereoR=cv2.ximgproc.createRightMatcher(stereo)
 
-    dispR= stereoR.compute(imgR,imgL)
+    dispR= stereoR.compute(Right_nice,Left_nice)
     dispL= np.int16(dispL)
     dispR= np.int16(dispR)
 
@@ -105,7 +117,7 @@ while True:
     wls_filter.setSigmaColor(sigma)
 
 
-    filteredImg= wls_filter.filter(dispL,imgL,None,dispR)
+    filteredImg= wls_filter.filter(dispL,Left_nice,None,dispR)
     filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
     filteredImg = np.uint8(filteredImg)
     #cv2.imshow('Disparity Map', filteredImg)

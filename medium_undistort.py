@@ -51,8 +51,8 @@ DL=np.array([[0.006236998786723406], [0.005462819175278735], [-0.003998179526054
 images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\LL\*.png')
 pathL = "./LL/"
 pathR = "./RR/"
-j=19
-for i in (range(34,73)):
+j=1
+for i in (range(1,73)):
     imgL = cv2.imread(pathL+"chessboardd-L%d.png"%i)
     imgR = cv2.imread(pathR+"chessboardd-R%d.png"%i)
     #h,w = imgL.shape[:2]
@@ -64,7 +64,7 @@ for i in (range(34,73)):
     cv2.imshow("R"+str(i), undistorted_imgR)
     if cv2.waitKey(0) & 0xFF == ord('s'):
         cv2.imwrite('l'+str(j)+'.png',undistorted_imgL)
-        cv2.imwrite('r'+str(j)+'.png',undistorted_imgL)
+        cv2.imwrite('r'+str(j)+'.png',undistorted_imgR)
         j=j+1
     else:
         print('Img not saved')
