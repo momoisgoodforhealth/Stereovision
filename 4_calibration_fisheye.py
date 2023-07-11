@@ -55,7 +55,7 @@ drawCorners = True
 showSingleCamUndistortionResults = True
 showStereoRectificationResults = True
 writeUdistortedImages = True
-imageToDisp = './scenes/scene_1280x480_1.png'
+imageToDisp = r'C:\Users\Benjamin\Documents\calibration\onemR.png'
 
 # Calibration settings
 CHECKERBOARD = (10,10)
@@ -80,15 +80,15 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 4
+total_photos = 8
 photo_counter = 1
 print ('Main cycle start')
 
 while photo_counter != total_photos:
   
   print ('Import pair No ' + str(photo_counter))
-  leftName = './22/'+str(photo_counter)+'.png'
-  rightName = './11/'+str(photo_counter)+'.png'
+  leftName = './cleanL/'+str(photo_counter)+'.png'
+  rightName = './cleanR/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
   photo_counter = photo_counter + 1
@@ -117,69 +117,72 @@ while photo_counter != total_photos:
           cv2.imshow('Corners LEFT', imgL)
           cv2.drawChessboardCorners(imgR, (10,10), cornersR, retR)
           cv2.imshow('Corners RIGHT', imgR)
-          cv2.waitKey(0)
-          #if key == ord("q"):
-          #    exit(0)
+          if cv2.waitKey(0) & 0xFF == ord('s'):
+                    #if key == ord("q"):
+                    #    exit(0)
 
-      # Here is a fix for the OpenCV bug, which is causing this error:
-      # error:(-215:Assertion failed) fabs(norm_u1) > 0 in function 'InitExtrinsics'
-      # It means corners are too close to the side of the image. Let's filter them out
-      
-      SayMore = True; #Should we print additional debug info?
-      if ((retL == True) and (retR == True)):
-          minRx = cornersR[:,:,0].min()
-          maxRx = cornersR[:,:,0].max()
-          minRy = cornersR[:,:,1].min()
-          maxRy = cornersR[:,:,1].max()
+                # Here is a fix for the OpenCV bug, which is causing this error:
+                # error:(-215:Assertion failed) fabs(norm_u1) > 0 in function 'InitExtrinsics'
+                # It means corners are too close to the side of the image. Let's filter them out
+                
+                SayMore = True; #Should we print additional debug info?
+                if ((retL == True) and (retR == True)):
+                    minRx = cornersR[:,:,0].min()
+                    maxRx = cornersR[:,:,0].max()
+                    minRy = cornersR[:,:,1].min()
+                    maxRy = cornersR[:,:,1].max()
 
-          minLx = cornersL[:,:,0].min()
-          maxLx = cornersL[:,:,0].max()          
-          minLy = cornersL[:,:,1].min()
-          maxLy = cornersL[:,:,1].max()          
-               
-          border_threshold_x = loadedX/7
-          border_threshold_y = loadedY/7
-          if (SayMore): 
-          	   print ("thr_X: ", border_threshold_x, "thr_Y:", border_threshold_y)
-          x_thresh_bad = False
-          if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
-              x_thresh_bad = True
-          y_thresh_bad = False
-          if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
-              y_thresh_bad = True
-          if (y_thresh_bad==True) or (x_thresh_bad==True):
-              if (SayMore):
-                  print("Chessboard too close to the side!", "X thresh: ", x_thresh_bad, "Y thresh: ", y_thresh_bad)
-                  print ("minRx: ", minRx, "maxRx: ", maxRx, " minLx: ", minLx, "maxLx:", maxLx)      
-                  print ("minRy: ", minRy, "maxRy: ", maxRy, " minLy: ", minLy, "maxLy:", maxLy) 
-              else: 
-                  print("Chessboard too close to the side! Image ignored")
-              retL = False
-              retR = False
-              continue
+                    minLx = cornersL[:,:,0].min()
+                    maxLx = cornersL[:,:,0].max()          
+                    minLy = cornersL[:,:,1].min()
+                    maxLy = cornersL[:,:,1].max()          
+                        
+                    border_threshold_x = loadedX/7
+                    border_threshold_y = loadedY/7
+                    if (SayMore): 
+                        print ("thr_X: ", border_threshold_x, "thr_Y:", border_threshold_y)
+                    x_thresh_bad = False
+                    if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
+                        x_thresh_bad = True
+                    y_thresh_bad = False
+                    if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
+                        y_thresh_bad = True
+                    if (y_thresh_bad==True) or (x_thresh_bad==True):
+                        if (SayMore):
+                            print("Chessboard too close to the side!", "X thresh: ", x_thresh_bad, "Y thresh: ", y_thresh_bad)
+                            print ("minRx: ", minRx, "maxRx: ", maxRx, " minLx: ", minLx, "maxLx:", maxLx)      
+                            print ("minRy: ", minRy, "maxRy: ", maxRy, " minLy: ", minLy, "maxLy:", maxLy) 
+                        else: 
+                            print("Chessboard too close to the side! Image ignored")
+                        retL = False
+                        retR = False
+                        continue
 
-      # Here is our scaling trick! Hi res for calibration, low res for real work!
-      # Scale corners X and Y to our working resolution
-      if ((retL == True) and (retR == True)) and (img_height <= photo_height):
-          scale_ratio = img_height/photo_height
-          print ("Scale ratio: ", scale_ratio)
-          cornersL = cornersL*scale_ratio #cornersL/2.0
-          cornersR = cornersR*scale_ratio #cornersR/2.0
-      elif (img_height > photo_height):
-          print ("Image resolution is higher than photo resolution, upscale needed. Please check your photo and image parameters!")
-          exit (0)
-      
-      # Refine corners and add to array for processing
-      if ((retL == True) and (retR == True)):
-          objpointsLeft.append(objp)
-          cv2.cornerSubPix(gray_small_left,cornersL,(3,3),(-1,-1),subpix_criteria)
-          imgpointsLeft.append(cornersL)
-          objpointsRight.append(objp)
-          cv2.cornerSubPix(gray_small_right,cornersR,(3,3),(-1,-1),subpix_criteria)
-          imgpointsRight.append(cornersR)
-      else:
-          print ("Pair No", photo_counter, "ignored, as no chessboard found" )
-          continue
+                # Here is our scaling trick! Hi res for calibration, low res for real work!
+                # Scale corners X and Y to our working resolution
+                if ((retL == True) and (retR == True)) and (img_height <= photo_height):
+                    scale_ratio = img_height/photo_height
+                    print ("Scale ratio: ", scale_ratio)
+                    cornersL = cornersL*scale_ratio #cornersL/2.0
+                    cornersR = cornersR*scale_ratio #cornersR/2.0
+                elif (img_height > photo_height):
+                    print ("Image resolution is higher than photo resolution, upscale needed. Please check your photo and image parameters!")
+                    exit (0)
+                
+                # Refine corners and add to array for processing
+                if ((retL == True) and (retR == True)):
+                    objpointsLeft.append(objp)
+                    cv2.cornerSubPix(gray_small_left,cornersL,(3,3),(-1,-1),subpix_criteria)
+                    imgpointsLeft.append(cornersL)
+                    objpointsRight.append(objp)
+                    cv2.cornerSubPix(gray_small_right,cornersR,(3,3),(-1,-1),subpix_criteria)
+                    imgpointsRight.append(cornersR)
+                else:
+                    print ("Pair No", photo_counter, "ignored, as no chessboard found" )
+                    continue
+          else:
+            print('Image pair not Used')
+          
        
 print ('End cycle')
 
@@ -359,8 +362,8 @@ if (showSingleCamUndistortionResults):
     # now. 
     
     #h, w = imgL.shape[:2]
-    w = 320
-    h = 240
+    w = 1920    
+    h = 1080
     print("Undistorting picture with (width, height):", (w, h))
     try:
         npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(h, '_left'))
