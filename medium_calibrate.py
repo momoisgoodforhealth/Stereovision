@@ -11,7 +11,7 @@ objp[0,:,:2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)*2
 _img_shape = None
 objpoints = [] # 3d point in real world space
 imgpoints = [] # 2d points in image plane.
-images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\LU\*.png')
+images = glob.glob(r'C:\Users\Benjamin\Documents\Stereo-Vision\cleanL\*.png')
 for fname in images:
     img = cv2.imread(fname)
     if _img_shape == None:
@@ -37,7 +37,7 @@ D = np.zeros((4, 1))
 rvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
 tvecs = [np.zeros((1, 1, 3), dtype=np.float64) for i in range(N_OK)]
 
-"""
+
 rms, _, _, _, _ = \
     cv2.fisheye.calibrate(
         objpoints,
@@ -55,8 +55,14 @@ print("Found " + str(N_OK) + " valid images for calibration")
 print("DIM=" + str(_img_shape[::-1]))
 print("K=np.array(" + str(K.tolist()) + ")")
 print("D=np.array(" + str(D.tolist()) + ")")
-"""
 
+distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')
+map1L, map2L = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, _img_shape[::-1], cv2.CV_16SC2)
+undistorted_imgL = cv2.remap(distorted, map1L, map2L, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+cv2.imshow('undistorted',undistorted_imgL)
+cv2.waitKey(0)
+
+"""
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
 print("calibrateCamera")
@@ -64,4 +70,4 @@ print("calibrateCamera")
 h, w = gray.shape[:2]
 newcameramtx, roi = cv2.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
 dst = cv2.undistort(gray, mtx, dist, None, newcameramtx)
-cv2.imwrite('cakib.png',dst)
+cv2.imwrite('cakib.png',dst)"""

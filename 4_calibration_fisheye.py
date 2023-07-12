@@ -37,12 +37,12 @@ import numpy as np
 
 
 # Camera resolution
-photo_width = 1920
-photo_height = 1080
+photo_width = 700#1920
+photo_height = 650#1080
 
 # Image resolution for processing
-img_width = 1920
-img_height = 1080
+img_width = 700#1920
+img_height = 650#1080
 image_size = (img_width,img_height)
 
 # Chessboard parameters
@@ -80,7 +80,7 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 8
+total_photos = 13
 photo_counter = 1
 print ('Main cycle start')
 
@@ -99,11 +99,11 @@ while photo_counter != total_photos:
   
   # If stereopair is complete - go to processing 
   if (leftExists and rightExists):
-      imgL = cv2.imread(leftName,1)
+      imgL = cv2.imread(leftName,1)[200:850, 700:1400]
       loadedY, loadedX, clrs  =  imgL.shape
       grayL = cv2.cvtColor(imgL,cv2.COLOR_BGR2GRAY)
       gray_small_left = cv2.resize (grayL, (img_width,img_height), interpolation = cv2.INTER_AREA)
-      imgR = cv2.imread(rightName,1)
+      imgR = cv2.imread(rightName,1)[200:850, 700:1400]
       grayR = cv2.cvtColor(imgR,cv2.COLOR_BGR2GRAY)
       gray_small_right = cv2.resize (grayR, (img_width,img_height), interpolation = cv2.INTER_AREA)
       
@@ -213,6 +213,11 @@ def calibrate_one_camera (objpoints, imgpoints, right_or_left):
         )
     # Let's rectify our results
     map1, map2 = cv2.fisheye.initUndistortRectifyMap(K, D, np.eye(3), K, DIM, cv2.CV_16SC2)
+    distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')[200:850, 700:1400]
+    undistorted_imgL = cv2.remap(distorted, map1, map2, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+    cv2.imshow('undistorted',undistorted_imgL)
+    cv2.waitKey(0)
+
     
     # Now we'll write our results to the file for the future use
     if (os.path.isdir('./calibration_data/{}p'.format(img_height))==False):
@@ -280,7 +285,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
             else:
                 print("Camera data file found but data corrupted.")
         except:
-            #If the file doesn't exist
+            #If the file doesn't exists 
             print("Camera calibration data not found in cache.")
             return False
 
