@@ -6,8 +6,8 @@ import os
 import glob
 
 # Set the path to the images captured by the left and right cameras
-pathL = "./LU/"
-pathR = "./RU/"
+pathL = "./cleanL/"
+pathR = "./cleanR/"
  
 # Termination criteria for refining the detected corners
 #subpix_criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.01)
@@ -20,11 +20,11 @@ objp[:,:2] = np.mgrid[0:10,0:10].T.reshape(-1,2)*25.4 # 25.4 mm (1 inch) size of
 img_ptsL = []
 img_ptsR = []
 obj_pts = []
-for i in tqdm(range(1,8)):
-  imgL = cv2.imread(pathL+"l%d.png"%i)
-  imgR = cv2.imread(pathR+"r%d.png"%i)
-  imgL_gray = cv2.imread(pathL+"l%d.png"%i,0)
-  imgR_gray = cv2.imread(pathR+"r%d.png"%i,0)  
+for i in tqdm(range(1,12)):
+  imgL = cv2.imread(pathL+"%d.png"%i)[200:900, 650:1400]
+  imgR = cv2.imread(pathR+"%d.png"%i)[200:900, 650:1400]
+  imgL_gray = cv2.imread(pathL+"%d.png"%i,0)[200:900, 650:1400]
+  imgR_gray = cv2.imread(pathR+"%d.png"%i,0)[200:900, 650:1400]
  
   outputL = imgL.copy()
   outputR = imgR.copy()

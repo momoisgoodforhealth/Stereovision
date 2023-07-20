@@ -1,6 +1,8 @@
 import numpy as np 
 import cv2
 from matplotlib import pyplot as plt
+from open3d import *
+
 # Check for left and right camera IDs
 # These values can change depending on the system
 #CamL_id = 2 # Camera ID for left camera
@@ -10,7 +12,7 @@ from matplotlib import pyplot as plt
 #CamR= cv2.VideoCapture(CamR_id)
  
 baseline=100
-focal_length= 4.77424789e+02
+focal_length= 2.83711978e+02#4.77424789e+02
 
 Q=np.float32([[ 1.00000000e+00,  0.00000000e+00 , 0.00000000e+00 ,-6.43447407e+02],
  [ 0.00000000e+00 , 1.00000000e+00,  0.00000000e+00, -6.47744417e+02],
@@ -18,8 +20,22 @@ Q=np.float32([[ 1.00000000e+00,  0.00000000e+00 , 0.00000000e+00 ,-6.43447407e+0
  [ 0.00000000e+00,  0.00000000e+00 ,-4.21595460e-03,  0.00000000e+00]])
 
 
+
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -4.39381522e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -3.12274867e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  2.85650723e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  7.76600100e-03, -3.72237318e-02]])
+
+Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -3.34334817e+02],
+ [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -3.14079409e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  2.83711978e+02],
+ [ 0.00000000e+00,  0.00000000e+00,  1.01527526e-02, -2.22518594e-01]])
+
+
+
+
 # Reading the mapping values for stereo image rectification
-npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(650))
+npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(700))
 cv_file = npzfile#cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
 Left_Stereo_Map_x = cv_file['leftMapX']
 Left_Stereo_Map_y = cv_file['leftMapY']
@@ -27,6 +43,17 @@ Right_Stereo_Map_x = cv_file['rightMapX']
 Right_Stereo_Map_y = cv_file['rightMapY']
  
 def write_ply(fn, verts, colors):
+    ply_header = '''ply
+format ascii 1.0
+element vertex %(vert_num)d
+property float x
+property float y
+property float z
+property uchar red
+property uchar green
+property uchar blue
+end_header
+'''
     verts = verts.reshape(-1, 3)
     colors = colors.reshape(-1, 3)
     verts = np.hstack([verts, colors])
@@ -34,13 +61,25 @@ def write_ply(fn, verts, colors):
         f.write((ply_header % dict(vert_num=len(verts))).encode('utf-8'))
         np.savetxt(f, verts, fmt='%f %f %f %d %d %d ')
 
+def display_pc():
+    cloud = io.read_point_cloud("fisheyePoint.ply")
+    visualization.draw_geometries([cloud])
+
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\LU\l1.png', cv2.IMREAD_GRAYSCALE)[200:850, 700:1400]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\RU\r1.png', cv2.IMREAD_GRAYSCALE)[200:850, 700:1400]
+    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31L.png')[200:850, 600:1400]
+    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31R.png')[200:850, 600:1400]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31L.png', cv2.IMREAD_GRAYSCALE)[200:850, 600:1400]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31R.png', cv2.IMREAD_GRAYSCALE)[200:850, 600:1400]
 
-    
+    Left_nice_raw= cv2.remap(rawimgL,
+                Left_Stereo_Map_x,
+                Left_Stereo_Map_y,
+                cv2.INTER_LANCZOS4,
+                cv2.BORDER_CONSTANT,
+                0)
+
     Left_nice= cv2.remap(imgL,
                 Left_Stereo_Map_x,
                 Left_Stereo_Map_y,
@@ -56,30 +95,63 @@ while True:
                 cv2.BORDER_CONSTANT,
                 0)
     
+    """
+    x1=250
+    x2=450
+    y1=250
+    y2=330
+
+    blankl = np.zeros((700,800), dtype=np.uint8)
+    blankr = np.zeros((700,800), dtype=np.uint8)
+    cropl=Left_nice[x1:x2, y1:y2]
+    cropr=Right_nice[x1:x2, y1:y2]
+    blankl[x1:x2, y1:y2]=cropl
+    blankr[x1:x2, y1:y2]=cropr
+
+    Left_nice=blankl
+    Right_nice=blankr
+    cv2.imshow('blankl',blankl)
+    cv2.imshow('blankr',blankr)
+    
+    """
+
+    cv2.waitKey(0)
+    
     cv2.imshow('left nice',Left_nice)
     cv2.imshow('right nice',Right_nice)
     cv2.waitKey(0)
         
-        
-
+    kernel = np.ones((10,10),np.uint8)
+    closing1 = cv2.morphologyEx(Left_nice, cv2.MORPH_CLOSE, kernel)
+    closing2 = cv2.morphologyEx(Right_nice, cv2.MORPH_CLOSE, kernel)
+    cv2.imshow('morphologyexL',closing1)
+    cv2.imshow('morphologyexR',closing2)
+    cv2.waitKey(0)
     # creates StereoBm object 
-    stereo = cv2.StereoSGBM_create(numDisparities =160, blockSize =1)
+
+    
+    stereo =cv2.StereoSGBM.create(numDisparities=160, blockSize=1)
     
     # computes disparity
-    disparity = stereo.compute(Left_nice, Right_nice)#.astype(np.float32) / 16.0
+    disparity = stereo.compute(closing1, closing2).astype(np.float32) / 16.0
+    dis=disparity.astype('uint8')
+    dispcolor=cv2.applyColorMap(dis,cv2.COLORMAP_OCEAN)
 
-    distance = (baseline * focal_length) / disparity
+    #plt.show()
+    #np.savez('disp.npz',disparity=disparity)
+
+    
 
     dispL=disparity
-    cv2.imshow('disparity',disparity)
-    cv2.waitKey(0)
+
+    #cv2.waitKey(0)
     stereoR=cv2.ximgproc.createRightMatcher(stereo)
 
     dispR= stereoR.compute(Right_nice,Left_nice)
     dispL= np.int16(dispL)
     dispR= np.int16(dispR)
 
-        # Using the WLS filter
+    # Using the WLS filter
     lmbda = 80000
     sigma = 1.8
     visual_multiplier = 1.0
@@ -88,9 +160,12 @@ while True:
     wls_filter.setSigmaColor(sigma)
 
 
-    filteredImg= wls_filter.filter(dispL,Left_nice,None,dispR)
-    filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
-    filteredImg = np.uint8(filteredImg)
+    #filteredImg= wls_filter.filter(dispL,Left_nice,None,dispR)
+    
+    #filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
+    #filteredImg = np.uint8(filteredImg)
+    #plt.imshow(filteredImg)
+   # plt.show()
     #cv2.imshow('Disparity Map', filteredImg)
     disp= disparity#.astype(np.float32)#/ 16)-2)/128 # Calculation allowing us to have 0 for the most distant object able to detect
 
@@ -100,24 +175,26 @@ while True:
         # Filtering the Results with a closing filter
     kernel= np.ones((3,3),np.uint8)
     closing= cv2.morphologyEx(disp,cv2.MORPH_CLOSE, kernel) # Apply an morphological filter for closing little "black" holes in the picture(Remove noise) 
-
+    closing = cv2.morphologyEx(closing, cv2.MORPH_OPEN, kernel)
+    distance = (baseline * focal_length) / dis
+    #plt.imshow(closing)
+    #plt.show()
         # Colors map
+    closing=closing.astype(np.uint8)
+    #dispcolor=cv2.applyColorMap(closing,cv2.COLORMAP_OCEAN)
     dispc= (closing-closing.min())*255
-    dispC= dispc.astype(np.uint8)                                   # Convert the type of the matrix from float32 to uint8, this way you can show the results with the function cv2.imshow()
+    dispC= dispc.astype(np.uint8)       
+    #plt.imshow(closing)     
+                           # Convert the type of the matrix from float32 to uint8, this way you can show the results with the function cv2.imshow()
     disp_Color= cv2.applyColorMap(dispC,cv2.COLORMAP_OCEAN)         # Change the Color of the Picture into an Ocean Color_Map
-    filt_Color= cv2.applyColorMap(filteredImg,cv2.COLORMAP_OCEAN) 
-    print("filt color shape="+str(filt_Color.shape))
+    #filt_Color= cv2.applyColorMap(filteredImg,cv2.COLORMAP_OCEAN) 
+    #print("filt color shape="+str(filt_Color.shape))
     print("dispC shape="+str(dispC.shape))
     print("distance shape="+str(distance.shape))
         # Show the result for the Depth_image
         #cv2.imshow('Disparity', disp)
         #cv2.imshow('Closing',closing)
         #cv2.imshow('Color Depth',disp_Color)
-
-    Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00,  2.79415839e+02],
- [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -3.94236319e+02],
- [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  3.01325032e+01],
- [ 0.00000000e+00,  0.00000000e+00,  1.92606991e-02,  1.63800798e+01]])
 
     points=cv2.reprojectImageTo3D(dispC, Q)
     #file1 = open("points.txt","w")
@@ -131,30 +208,19 @@ while True:
     print(points)
 
 
-    ply_header = '''ply
-format ascii 1.0
-element vertex %(vert_num)d
-property float x
-property float y
-property float z
-property uchar red
-property uchar green
-property uchar blue
-end_header
-'''
 
-
-
-    print('generating 3d point cloud...',)
-    points=cv2.reprojectImageTo3D(dispC, Q)
+    print('generating 3d point cloud...')
+    points=cv2.reprojectImageTo3D(closing, Q)
     print(points.shape)
     #print(points)
     #points = cv2.reprojectImageTo3D(dispC, Q)
-    colors = cv2.cvtColor(filteredImg, cv2.COLOR_BGR2RGB)
-    mask = dispC > dispC.min()
+    colors = cv2.cvtColor(Left_nice_raw, cv2.COLOR_BGR2RGB)
+    mask = disparity > disparity.min()
     out_points = points[mask]
     out_colors = colors[mask]
-    out_fn = 'fisheyePoint.ply'
+    out_fn = 'fish.ply'
+    print(out_colors.shape)
+    print(out_points.shape)
     write_ply(out_fn, out_points, out_colors)
     print('%s saved' % out_fn)
 
@@ -189,11 +255,11 @@ end_header
           
         # display that left button 
         # was clicked.
-            cv2.putText(filt_Color, str((x,y)), (x, y), font, 0.4, (0, 0, 255), 2) 
-            cv2.putText(filt_Color, str(points[y, x]), (x, y-14), font, 0.4, (0, 0, 255), 2) 
-            cv2.putText(filt_Color, str(distance[y,x])+"mm", (x, y-28), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(dispcolor, str((x,y)), (x, y), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(dispcolor, str(points[y, x]), (x, y-14), font, 0.4, (0, 0, 255), 2) 
+            cv2.putText(dispcolor, str(distance[y,x])+"mm", (x, y-28), font, 0.4, (0, 0, 255), 2) 
             #cv2.resize(filt_Color, (500, 700))
-            cv2.imshow('Filtered Color Depth', filt_Color)
+            cv2.imshow('dis', dispcolor)
             cv2.waitKey(0)
 
     
@@ -217,9 +283,15 @@ end_header
     #cv2.rectangle(filt_Color, (30, 30), (300, 200), (0, 255, 0), 5)
     #cv2.circle(filt_Color, (200, 200), 80, (255, 0, 0), 3)
     #cv2.imwrite('sc2.png',filt_Color)
-    cv2.imshow('Filtered Color Depth',filt_Color)
-    
-    cv2.setMouseCallback("Filtered Color Depth", mouse_click)
+
+    #dispcolor[300:400,300:400] = (128,128,23)
+    dispcolor=cv2.applyColorMap(dis,cv2.COLORMAP_OCEAN)
+    cv2.imshow('dis',dispcolor)
+    cv2.setMouseCallback('dis', mouse_click)
+    #plt.imshow(filt_Color)
+    plt.show()
+
+    #cv2.setMouseCallback("Filtered Color Depth", mouse_click)
 
     #cv2.setMouseCallback("Filtered Color Depth",coords_mouse_disp,filt_Color)
 
@@ -230,130 +302,3 @@ end_header
         break
 
 cv2.destroyAllWindows()
-"""
-#print "\nGenerating the 3D map ..."
-h, w = imgL.shape[:2]
-focal_length = 0.8*w                          
-
-    # Perspective transformation matrix
-Q = np.float32([[1, 0, 0, -w/2.0],
-                    [0,-1, 0,  h/2.0], 
-                    [0, 0, 0, -focal_length], 
-                    [0, 0, 1, 0]])
-
-points_3D = cv2.reprojectImageTo3D(disparity, Q)
-colors = cv2.cvtColor(imgL, cv2.COLOR_BGR2RGB)
-mask_map = disparity > disparity.min()
-output_points = points_3D[mask_map]
-output_colors = colors[mask_map]
-
-def create_output(vertices, colors, filename):
-    colors = colors.reshape(-1, 3)
-    vertices = np.hstack([vertices.reshape(-1,3), colors])
-
-    ply_header = '''ply
-        format ascii 1.0
-        element vertex %(vert_num)d
-        property float x
-        property float y
-        property float z
-        property uchar red
-        property uchar green
-        property uchar blue
-        end_header
-    '''
-
-    with open(filename, 'w') as f:
-        f.write(ply_header % dict(vert_num=len(vertices)))
-        np.savetxt(f, vertices, '%f %f %f %d %d %d')
-
-output_file = 'output_file.ply'
-#print "\nCreating the output file ...\n"
-create_output(output_points, output_colors, output_file)
-  
-# displays image as grayscale and plotted
-plt.imshow(disparity)
-plt.show()
-
-from open3d import *    
-
-
-cloud = io.read_point_cloud("output_file.ply") # Read point cloud
-visualization.draw_geometries([cloud])    # Visualize point cloud 
-"""
-"""
-def nothing(x):
-    pass
- 
-cv2.namedWindow('disp',cv2.WINDOW_NORMAL)
-cv2.resizeWindow('disp',600,600)
- 
-cv2.createTrackbar('numDisparities','disp',1,233,nothing)
-cv2.createTrackbar('blockSize','disp',5,50,nothing)
-cv2.createTrackbar('preFilterType','disp',1,1,nothing)
-cv2.createTrackbar('preFilterSize','disp',2,25,nothing)
-cv2.createTrackbar('preFilterCap','disp',5,62,nothing)
-cv2.createTrackbar('textureThreshold','disp',10,100,nothing)
-cv2.createTrackbar('uniquenessRatio','disp',15,100,nothing)
-cv2.createTrackbar('speckleRange','disp',0,100,nothing)
-cv2.createTrackbar('speckleWindowSize','disp',3,25,nothing)
-cv2.createTrackbar('disp12MaxDiff','disp',5,25,nothing)
-cv2.createTrackbar('minDisparity','disp',5,25,nothing)
- 
-# Creating an object of StereoBM algorithm
-stereo = cv2.StereoSGBM_create()
- 
-while True:
- 
-
-
- 
-    # Updating the parameters based on the trackbar positions
-    numDisparities = cv2.getTrackbarPos('numDisparities','disp')*16
-    blockSize = cv2.getTrackbarPos('blockSize','disp')*2 + 5
-    #preFilterType = cv2.getTrackbarPos('preFilterType','disp')
-    #preFilterSize = cv2.getTrackbarPos('preFilterSize','disp')*2 + 5
-    preFilterCap = cv2.getTrackbarPos('preFilterCap','disp')
-    #textureThreshold = cv2.getTrackbarPos('textureThreshold','disp')
-    uniquenessRatio = cv2.getTrackbarPos('uniquenessRatio','disp')
-    speckleRange = cv2.getTrackbarPos('speckleRange','disp')
-    speckleWindowSize = cv2.getTrackbarPos('speckleWindowSize','disp')*2
-    disp12MaxDiff = cv2.getTrackbarPos('disp12MaxDiff','disp')
-    minDisparity = cv2.getTrackbarPos('minDisparity','disp')
-     
-    # Setting the updated parameters before computing disparity map
-    stereo.setNumDisparities(numDisparities)
-    stereo.setBlockSize(blockSize)
-    #stereo.setPreFilterType(preFilterType)
-    #stereo.setPreFilterSize(preFilterSize)
-    stereo.setPreFilterCap(preFilterCap)
-    #stereo.setTextureThreshold(textureThreshold)
-    stereo.setUniquenessRatio(uniquenessRatio)
-    stereo.setSpeckleRange(speckleRange)
-    stereo.setSpeckleWindowSize(speckleWindowSize)
-    stereo.setDisp12MaxDiff(disp12MaxDiff)
-    stereo.setMinDisparity(minDisparity)
- 
-    # Calculating disparity using the StereoBM algorithm
-    disparity = stereo.compute(Left_nice,Right_nice)
-    # NOTE: Code returns a 16bit signed single channel image,
-    # CV_16S containing a disparity map scaled by 16. Hence it 
-    # is essential to convert it to CV_32F and scale it down 16 times.
- 
-    # Converting to float32 
-    disparity = disparity.astype(np.float32)
- 
-    # Scaling down the disparity values and normalizing them 
-    disparity = (disparity/16.0 - minDisparity)/numDisparities
- 
-    # Displaying the disparity map
-    cv2.imshow("disp",disparity)
- 
-    # Close window using esc key
-    if cv2.waitKey(1) == 27:
-      break
-   
-  #else:
-    #CamL= cv2.VideoCapture(CamL_id)
-    #CamR= cv2.VideoCapture(CamR_id)
-"""

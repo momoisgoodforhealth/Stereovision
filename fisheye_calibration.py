@@ -37,12 +37,12 @@ import numpy as np
 
 
 # Camera resolution
-photo_width = 700#1920
-photo_height = 650#1080
+photo_width = 800#1920
+photo_height = 700#1080
 
 # Image resolution for processing
-img_width = 700#1920
-img_height = 650#1080
+img_width = 800#1920
+img_height = 700#1080
 image_size = (img_width,img_height)
 
 # Chessboard parameters
@@ -56,12 +56,12 @@ showSingleCamUndistortionResults = True
 showStereoRectificationResults = True
 writeUdistortedImages = True
 imageToDisp = r'C:\Users\Benjamin\Documents\calibration\onemR.png'
-distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')[200:850, 700:1400]
+distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')[200:900, 600:1400]
 
 # Calibration settings
 CHECKERBOARD = (10,10)
 
-subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.1)
+subpix_criteria = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
 calibration_flags = cv2.fisheye.CALIB_RECOMPUTE_EXTRINSIC+cv2.fisheye.CALIB_FIX_SKEW
 
 objp = np.zeros( (CHECKERBOARD[0]*CHECKERBOARD[1], 1, 3) , np.float64)
@@ -81,7 +81,7 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 13
+total_photos = 85
 photo_counter = 1
 print ('Main cycle start')
 
@@ -100,11 +100,11 @@ while photo_counter != total_photos:
   
   # If stereopair is complete - go to processing 
   if (leftExists and rightExists):
-      imgL = cv2.imread(leftName,1)[200:850, 700:1400]
+      imgL = cv2.imread(leftName,1)[200:900, 600:1400]
       loadedY, loadedX, clrs  =  imgL.shape
       grayL = cv2.cvtColor(imgL,cv2.COLOR_BGR2GRAY)
       gray_small_left = cv2.resize (grayL, (img_width,img_height), interpolation = cv2.INTER_AREA)
-      imgR = cv2.imread(rightName,1)[200:850, 700:1400]
+      imgR = cv2.imread(rightName,1)[200:900, 600:1400]
       grayR = cv2.cvtColor(imgR,cv2.COLOR_BGR2GRAY)
       gray_small_right = cv2.resize (grayR, (img_width,img_height), interpolation = cv2.INTER_AREA)
       
@@ -210,7 +210,7 @@ def calibrate_one_camera (objpoints, imgpoints, right_or_left):
             rvecs,
             tvecs,
             calibration_flags,
-            (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 1e-6)
+            (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
         )
     
     print ("<><>  Individual RMS is ", rms, " <><>")
@@ -240,7 +240,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
     """
     processing_time01 = cv2.getTickCount()
     objectPoints = None
-
+    DIM= (img_width, img_height)
     rightImagePoints = None
     rightCameraMatrix = None
     rightDistortionCoefficients = None
@@ -254,7 +254,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
 
     imageSize= (res_x, res_y)
 
-    TERMINATION_CRITERIA = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
+    TERMINATION_CRITERIA = (cv2.TERM_CRITERIA_EPS+cv2.TERM_CRITERIA_MAX_ITER, 100, 0.001)
     OPTIMIZE_ALPHA = 0.25
 
     try:
@@ -310,7 +310,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
             objectPoints, leftImagePoints, rightImagePoints,
             leftCameraMatrix, leftDistortionCoefficients,
             rightCameraMatrix, rightDistortionCoefficients,
-            imageSize, None, None,
+            DIM, None, None,
             cv2.CALIB_FIX_INTRINSIC, TERMINATION_CRITERIA)
     # Print RMS result (for calibration quality estimation)
     print ("<><>  Stereo RMS is ", RMS, " <><>")
@@ -326,24 +326,26 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
             dispartityToDepthMap) = cv2.fisheye.stereoRectify(
                     leftCameraMatrix, leftDistortionCoefficients,
                     rightCameraMatrix, rightDistortionCoefficients,
-                    imageSize, rotationMatrix, translationVector,
+                    DIM, rotationMatrix, translationVector,
                     0, R2, P1, P2, Q,
                     cv2.CALIB_ZERO_DISPARITY, (0,0) , 0, 0)
-    
+    print("left rect: ")
+    print(leftRectification)
+    print("right rect: ")
+    print(rightRectification)
     print("For Q..")
     print(dispartityToDepthMap)
-    print(Q )
-    
+
     # Saving calibration results for the future use
     print("Saving calibration...")
     leftMapX, leftMapY = cv2.fisheye.initUndistortRectifyMap(
             leftCameraMatrix, leftDistortionCoefficients, leftRectification,
-            leftProjection, imageSize, cv2.CV_16SC2)
+            leftProjection, DIM, cv2.CV_16SC2)
     rightMapX, rightMapY = cv2.fisheye.initUndistortRectifyMap(
             rightCameraMatrix, rightDistortionCoefficients, rightRectification,
-            rightProjection, imageSize, cv2.CV_16SC2)
+            rightProjection, DIM, cv2.CV_16SC2)
 
-    np.savez_compressed('./calibration_data/{}p/stereo_camera_calibration.npz'.format(res_y), imageSize=imageSize,
+    np.savez_compressed('./calibration_data/{}p/stereo_camera_calibration.npz'.format(res_y), imageSize=DIM,
             leftMapX=leftMapX, leftMapY=leftMapY,
             rightMapX=rightMapX, rightMapY=rightMapY, dispartityToDepthMap = dispartityToDepthMap)
     return True
@@ -364,16 +366,8 @@ print ("Calibration complete!")
 
 if (showSingleCamUndistortionResults):
 
-    """
-    # Takes an image in as a numpy array and undistorts it
-    """
-    # NOTICE: we use 320x240 as a working resolution, regardless of
-    # calibration images resolution. So 320x240 parameters are hardcoded
-    # now. 
-    
-    #h, w = imgL.shape[:2]
-    w = 700    
-    h = 650
+    w = 800    
+    h = 700
     print("Undistorting picture with (width, height):", (w, h))
     try:
         npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(h, '_left'))
@@ -424,7 +418,7 @@ if (showStereoRectificationResults):
     # calibration images resolution. So 320x240 parameters are hardcoded
     # now. 
     try:
-        npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(650))
+        npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(700))
     except:
        # print("Camera calibration data not found in cache, file " & './calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
         exit(0)
@@ -435,10 +429,10 @@ if (showStereoRectificationResults):
     rightMapY = npzfile['rightMapY']
 
     #read image to undistort
-    photo_width = 700#1920
-    photo_height = 650#1080
-    image_width = 700
-    image_height = 650
+    photo_width = 800#1920
+    photo_height = 800#1080
+    image_width = 750
+    image_height = 700
     image_size = (image_width,image_height)
 
     # Rectifying left and right images

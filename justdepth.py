@@ -66,8 +66,8 @@ def write_ply(fn, verts, colors):
 
 while True:
   # Capturing and storing left and right camera images
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\LU\l1.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\Stereo-Vision\RU\r1.png', cv2.IMREAD_GRAYSCALE)#[60:900, 230:1500]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\curtainL.png', cv2.IMREAD_GRAYSCALE)[200:900, 650:1400]#[60:900, 230:1500]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\curtainR.png', cv2.IMREAD_GRAYSCALE)[200:900, 650:1400]#[60:900, 230:1500]
 
     
     Left_nice= cv2.remap(imgL,
