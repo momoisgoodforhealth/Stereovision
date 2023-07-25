@@ -1,0 +1,31 @@
+Left camera calibration...
+<><>  Individual RMS is  0.1498934223820099  <><>
+Right camera calibration...
+<><>  Individual RMS is  0.24319349082718758  <><>
+Stereoscopic calibration...
+./calibration_data/700p/camera_calibration_left.npz
+['camera_matrix', 'distortion_coeff', 'imgpoints', 'map1', 'map2', 'objpoints']
+Camera calibration data has been found in cache.
+./calibration_data/700p/camera_calibration_right.npz
+['camera_matrix', 'distortion_coeff', 'imgpoints', 'map1', 'map2', 'objpoints']
+Camera calibration data has been found in cache.
+Calibrating cameras together...
+<><>  Stereo RMS is  2.507957113133326  <><>
+Rectifying cameras...
+left rect:
+[[ 0.99848074  0.0550123  -0.00314075]
+ [-0.0550178   0.99848394 -0.00169054]
+ [ 0.00304299  0.00186076  0.99999364]]
+right rect:
+[[ 0.9985482   0.05372091 -0.00394439]
+ [-0.05371381  0.9985546   0.00188298]
+ [ 0.00403984 -0.00166838  0.99999045]]
+For Q..
+[[ 1.00000000e+00  0.00000000e+00  0.00000000e+00 -3.34334817e+02]
+ [ 0.00000000e+00  1.00000000e+00  0.00000000e+00 -3.14079409e+02]
+ [ 0.00000000e+00  0.00000000e+00  0.00000000e+00  2.83711978e+02]
+ [ 0.00000000e+00  0.00000000e+00  1.01527526e-02 -2.22518594e-01]]
+Saving calibration...
+Calibration complete!
+Undistorting picture with (width, height): (800, 700)
+Undistorting picture with (width, height): (800, 700)

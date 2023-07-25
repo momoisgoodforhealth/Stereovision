@@ -16,8 +16,8 @@ font = cv2.FONT_HERSHEY_DUPLEX
 
 # Create a VideoCapture object and read from input file
 # If the input is the camera, pass 0 instead of the video file name
-capL = cv2.VideoCapture('./videos/L0008.mov')
-capR = cv2.VideoCapture('videos/R0008.mov') 
+capL = cv2.VideoCapture('./videos/L0011.mov')
+capR = cv2.VideoCapture('videos/R0011.mov') 
 
 npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(700))
 cv_file = npzfile#cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
@@ -26,8 +26,6 @@ Left_Stereo_Map_y = cv_file['leftMapY']
 Right_Stereo_Map_x = cv_file['rightMapX']
 Right_Stereo_Map_y = cv_file['rightMapY']
 
-font = cv2.FONT_HERSHEY_DUPLEX
-xxx=0
 # Check if camera opened successfully
 if (capL.isOpened()== False): 
   print("Error opening video stream or file")
@@ -48,15 +46,15 @@ while(capL.isOpened()):
   frameL = cv2.resize(frameL, dim, interpolation = cv2.INTER_AREA)
   frameLr = cv2.resize(frameL, dim, interpolation = cv2.INTER_AREA)
 
-  frameL=frameL[200:850, 600:1400]
-  frameLr=frameLr[200:850, 600:1400]
+  frameL=frameL[190:890, 560:1360]
+  frameLr=frameLr[190:890, 560:1360]
   frameL = cv2.cvtColor(frameL, cv2.COLOR_BGR2GRAY)
   
 
   ret, frameR = capR.read()
 
   frameR = cv2.resize(frameR, dim, interpolation = cv2.INTER_AREA)
-  frameR=frameR[200:850, 600:1400]
+  frameR=frameR[190:890, 560:1360]
   frameR = cv2.cvtColor(frameR, cv2.COLOR_BGR2GRAY)
 
 
