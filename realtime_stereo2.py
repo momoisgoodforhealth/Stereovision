@@ -7,13 +7,17 @@ import io
 import socket
 import struct
 import time
-import pickle
+import pickle as cPickle
 import zlib
+from matplotlib import pyplot as plt
 
 
 baseline=98.5
 focal_length= 2.83711978e+02#4.77424789e+02
 msx,msy=0,0
+
+encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]
+
 
 Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -3.34334817e+02],
  [ 0.00000000e+00,  1.00000000e+00,  0.00000000e+00, -3.14079409e+02],
@@ -29,14 +33,19 @@ Right_Stereo_Map_y = cv_file['rightMapY']
 
 font = cv2.FONT_HERSHEY_DUPLEX
 
+    #frame=conn.recv()
+
+
+
 
 def capture_framesL(connection,queue):
     scale_percent = 50
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src="rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
+    src='./videos/L0007.mov'#"rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
     capture = cv2.VideoCapture(src)
+    print("left fps="+str(capture.get(cv2.CAP_PROP_FPS)))
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
     cv2.namedWindow("framel", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("framel", 480, 420)
@@ -85,8 +94,9 @@ def capture_framesR(connection,queue):
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src="rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
+    src='./videos/R0007.mov'#"rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
     capture = cv2.VideoCapture(src)
+    print("right fps="+str(capture.get(cv2.CAP_PROP_FPS)))
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
     cv2.namedWindow("framer", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("framer", 480, 420)  
@@ -167,17 +177,71 @@ def disparity(conL,conR):
         #disparity = stereo.compute(frameL,frameR)
         #cv2.imshow('dis',disparity)
 
+def sockett(conn):
+    i=0
+    TCP_IP = '127.0.0.1'
+    TCP_PORT = 1234
+
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM) # establishing a tcp connection
+    sock.bind((TCP_IP, TCP_PORT))
+    sock.listen(5)
+    print("sock listen pass")
+
+    (client_socket, client_address) = sock.accept() # wait for client
+    print ('client accepted')
+    print (str(client_address))
+    while True:
+        frame=conn.recv()
+
+        #print ('socket frame recieve')
+        print(frame.shape)
+        #by=bytearray(frame)
+        #if i==5:
+        frame = cPickle.dumps(frame)
+        size = len(frame)
+        print('packet size: '+str(size))
+        p = struct.pack('I', size)
+        frame = p + frame
+        client_socket.sendall(frame)
+        #    i=0
+        #i=i+1
+        #plt.imshow(frame)
+        #plt.savefig('disparity_image.jpg')
+        #frame = cv2.imencode('.jpg', frame)[1]
+        #cv2.imshow('disparity_image.jpg',frame)
+        #if cv2.waitKey(25) & 0xFF == ord('q'):
+        #    break  
+
+        #by=bytearray(frame)
+        #print('byte size: '+str(by))
+        #data=frame
+        #frame = cPickle.dumps(frame)
+        #size = len(frame)
+
+        #print("frame size = "+ str(size))
+        #client_socket.sendall(by)
+        #frame = cPickle.dumps(frame)
+        #size = len(frame)
+        #print("frame size = "+ str(size))
+        #p = struct.pack('I', size)
+        #frame = p + frame
+        #client_socket.sendall(frame)
+
 
 if __name__ == '__main__':
     print('Starting video stream')
     connL1, connL2 = Pipe()
     connR1, connR2 = Pipe()
+    connSR, connSS = Pipe()
+
     qL=mp.Queue
     qR=mp.Queue
+    
     capture_processL = mp.Process(target=capture_framesL, args=(connL2,qL,))
     capture_processR = mp.Process(target=capture_framesR, args=(connR2,qR,))
     #Ds = mp.Process(target=disparity, args=(connL1,connR1,))
     disp=mp.Process(target=disparity, args=(connL1,connR1,))
+    soc=mp.Process(target=sockett, args=(connSR,))
 
     capture_processL.start()
     capture_processR.start()
@@ -192,7 +256,7 @@ if __name__ == '__main__':
 
 
     cv2.namedWindow('dis',cv2.WINDOW_AUTOSIZE)
-    cv2.createTrackbar('numDisparities','dis',1,50,nothing)
+    #cv2.createTrackbar('numDisparities','dis',1,50,nothing)
     cv2.createTrackbar('blockSize','dis',5,50,nothing)
     #cv2.createTrackbar('preFilterType','dis',1,1,nothing)
     cv2.createTrackbar('preFilterSize','dis',2,25,nothing)
@@ -204,8 +268,9 @@ if __name__ == '__main__':
     #cv2.createTrackbar('disp12MaxDiff','dis',5,25,nothing)
     cv2.createTrackbar('minDisparity','dis',0,25,nothing)
 
-    stereo = cv2.StereoBM_create()
-
+    stereo = cv2.StereoBM_create(numDisparities=160)
+    soc.start()
+    ctr=0
     while True:
         frameL=connL1.recv()
         frameR=connR1.recv()
@@ -224,10 +289,10 @@ if __name__ == '__main__':
         #stereo = cv2.StereoBM.create(numDisparities=160, blockSize=15)
         
 
+        
 
 
-
-        numDisparities = cv2.getTrackbarPos('numDisparities','dis')*16
+        #numDisparities = cv2.getTrackbarPos('numDisparities','dis')*16
         blockSize = cv2.getTrackbarPos('blockSize','dis')*2 + 5
         #preFilterType = cv2.getTrackbarPos('preFilterType','dis')
         preFilterSize = cv2.getTrackbarPos('preFilterSize','dis')*2 + 5
@@ -240,7 +305,7 @@ if __name__ == '__main__':
         minDisparity = cv2.getTrackbarPos('minDisparity','dis')
 
 
-        stereo.setNumDisparities(numDisparities)
+        #stereo.setNumDisparities(numDisparities)
         stereo.setBlockSize(blockSize)
         #stereo.setPreFilterType(preFilterType)
         stereo.setPreFilterSize(preFilterSize)
@@ -252,6 +317,7 @@ if __name__ == '__main__':
         #stereo.setDisp12MaxDiff(disp12MaxDiff)
         stereo.setMinDisparity(minDisparity)
         disparity = stereo.compute(frameL,frameR)
+        
         dispcolor=disparity.astype('uint8')
         points=cv2.reprojectImageTo3D(disparity, Q)
         distance = (baseline * focal_length) / disparity
@@ -261,13 +327,16 @@ if __name__ == '__main__':
             if event == cv2.EVENT_LBUTTONDOWN:
                 msx,msy=x,y
                 
-                cv2.putText(dispcolor, str((x,y)), (x, y), font, 0.4, (0, 0, 255), 2) 
+                cv2.putText(dispcolor, str((x,y))+"="+str(disparity[y,x]), (x, y), font, 0.4, (0, 0, 255), 2) 
                 cv2.putText(dispcolor, str(points[y, x]), (x, y-14), font, 0.4, (0, 0, 255), 2) 
                 cv2.putText(dispcolor, str(distance[y,x])+"mm", (x, y-28), font, 0.4, (0, 0, 255), 2) 
                 cv2.imshow("dis", dispcolor)
         dispcolor=cv2.applyColorMap(dispcolor,cv2.COLORMAP_OCEAN)
-        
-        cv2.putText(dispcolor, str((msx,msy)), (msx,msy), font, 0.4, (0, 0, 255), 2) 
+        if ctr==20:
+            connSS.send(dispcolor)
+            ctr=0
+        ctr=ctr+1
+        cv2.putText(dispcolor, str((msx,msy))+"="+str(disparity[msy,msx]), (msx,msy), font, 0.4, (0, 0, 255), 2) 
         cv2.putText(dispcolor, str(points[msy, msx]), (msx, msy-14), font, 0.4, (0, 0, 255), 2) 
         cv2.putText(dispcolor, str(distance[msy,msx])+"mm", (msx, msy-28), font, 0.4, (0, 0, 255), 2) 
         cv2.imshow('dis',dispcolor)  
@@ -278,4 +347,4 @@ if __name__ == '__main__':
         #cv2.waitKey(0)   
 
     capture_processL.join()
-    capture_processR.join()    
+    capture_processR.join()

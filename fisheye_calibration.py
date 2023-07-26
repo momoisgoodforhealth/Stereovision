@@ -37,12 +37,12 @@ import numpy as np
 
 
 # Camera resolution
-photo_width = 1920#800#1920
-photo_height = 1080#700#1080
+photo_width = 800#1920
+photo_height = 700#1080
 
 # Image resolution for processing
-img_width = 1920#800#1920
-img_height = 1080#700#1080
+img_width = 800#1920
+img_height = 700#1080
 image_size = (img_width,img_height)
 
 # Chessboard parameters
@@ -56,7 +56,7 @@ showSingleCamUndistortionResults = True
 showStereoRectificationResults = True
 writeUdistortedImages = True
 imageToDisp = r'C:\Users\Benjamin\Documents\calibration\onemR.png'
-distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')#[190:890, 560:1360]
+distorted= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\board52.png')[190:890, 560:1360]
 
 # Calibration settings
 CHECKERBOARD = (10,10)
@@ -81,15 +81,15 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 122
-photo_counter = 1
+total_photos = 65
+photo_counter = 0
 print ('Main cycle start')
 
 while photo_counter != total_photos:
   
   print ('Import pair No ' + str(photo_counter))
-  leftName = './cleanL/'+str(photo_counter)+'.png'
-  rightName = './cleanR/'+str(photo_counter)+'.png'
+  leftName = './underL/'+str(photo_counter)+'.png'
+  rightName = './underR/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
   photo_counter = photo_counter + 1
@@ -100,11 +100,11 @@ while photo_counter != total_photos:
   
   # If stereopair is complete - go to processing 
   if (leftExists and rightExists):
-      imgL = cv2.imread(leftName,1)#[190:890, 560:1360]
+      imgL = cv2.imread(leftName,1)[190:890, 560:1360]
       loadedY, loadedX, clrs  =  imgL.shape
       grayL = cv2.cvtColor(imgL,cv2.COLOR_BGR2GRAY)
       gray_small_left = cv2.resize (grayL, (img_width,img_height), interpolation = cv2.INTER_AREA)
-      imgR = cv2.imread(rightName,1)#[190:890, 560:1360]
+      imgR = cv2.imread(rightName,1)[190:890, 560:1360]
       grayR = cv2.cvtColor(imgR,cv2.COLOR_BGR2GRAY)
       gray_small_right = cv2.resize (grayR, (img_width,img_height), interpolation = cv2.INTER_AREA)
       
@@ -223,9 +223,9 @@ def calibrate_one_camera (objpoints, imgpoints, right_or_left):
 
     
     # Now we'll write our results to the file for the future use
-    if (os.path.isdir('./calibration_data/{}p'.format(img_height))==False):
-        os.makedirs('./calibration_data/{}p'.format(img_height))
-    np.savez('./calibration_data/{}p/camera_calibration_{}.npz'.format(img_height, right_or_left),
+    if (os.path.isdir('./under_calibration_data/{}p'.format(img_height))==False):
+        os.makedirs('./under_calibration_data/{}p'.format(img_height))
+    np.savez('./under_calibration_data/{}p/camera_calibration_{}.npz'.format(img_height, right_or_left),
         map1=map1, map2=map2, objpoints=objpoints, imgpoints=imgpoints,
         camera_matrix=camera_matrix, distortion_coeff=distortion_coeff)
     return (True)
@@ -258,7 +258,7 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
     OPTIMIZE_ALPHA = 0.25
 
     try:
-        npz_file = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(res_y))
+        npz_file = np.load('./under_calibration_data/{}p/stereo_camera_calibration.npz'.format(res_y))
     except:
         pass
 
@@ -266,8 +266,8 @@ def calibrate_stereo_cameras(res_x=img_width, res_y=img_height):
         right_or_left = ["_right" if cam_num==1 else "_left"][0]
 
         try:
-            print ('./calibration_data/{}p/camera_calibration{}.npz'.format(res_y, right_or_left))
-            npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(res_y, right_or_left))
+            print ('./under_calibration_data/{}p/camera_calibration{}.npz'.format(res_y, right_or_left))
+            npz_file = np.load('./under_calibration_data/{}p/camera_calibration{}.npz'.format(res_y, right_or_left))
 
             list_of_vars = ['map1', 'map2', 'objpoints', 'imgpoints', 'camera_matrix', 'distortion_coeff']
             print(sorted(npz_file.files)) 
@@ -370,7 +370,7 @@ if (showSingleCamUndistortionResults):
     h = 700
     print("Undistorting picture with (width, height):", (w, h))
     try:
-        npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(h, '_left'))
+        npz_file = np.load('./under_calibration_data/{}p/camera_calibration{}.npz'.format(h, '_left'))
         if 'map1' and 'map2' in npz_file.files:
             #print("Camera calibration data has been found in cache.")
             map1 = npz_file['map1']
@@ -388,7 +388,7 @@ if (showSingleCamUndistortionResults):
     #h, w = imgR.shape[:2]
     print("Undistorting picture with (width, height):", (w, h))
     try:
-        npz_file = np.load('./calibration_data/{}p/camera_calibration{}.npz'.format(h, '_right'))
+        npz_file = np.load('./under_calibration_data/{}p/camera_calibration{}.npz'.format(h, '_right'))
         if 'map1' and 'map2' in npz_file.files:
             #print("Camera calibration data has been found in cache.")
             map1 = npz_file['map1']
@@ -418,7 +418,7 @@ if (showStereoRectificationResults):
     # calibration images resolution. So 320x240 parameters are hardcoded
     # now. 
     try:
-        npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(1080))
+        npzfile = np.load('./under_calibration_data/{}p/stereo_camera_calibration.npz'.format(1080))
     except:
        # print("Camera calibration data not found in cache, file " & './calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
         exit(0)
