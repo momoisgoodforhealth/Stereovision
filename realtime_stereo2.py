@@ -177,6 +177,12 @@ def disparity(conL,conR):
         #disparity = stereo.compute(frameL,frameR)
         #cv2.imshow('dis',disparity)
 
+
+
+#def point_cloud(points):
+
+
+
 def sockett(conn):
     i=0
     TCP_IP = '127.0.0.1'
@@ -190,19 +196,20 @@ def sockett(conn):
     (client_socket, client_address) = sock.accept() # wait for client
     print ('client accepted')
     print (str(client_address))
-    while True:
-        frame=conn.recv()
+    #while True:
+    frame=cv2.imread('sc.png')#conn.recv()
 
-        #print ('socket frame recieve')
-        print(frame.shape)
-        #by=bytearray(frame)
-        #if i==5:
-        frame = cPickle.dumps(frame)
-        size = len(frame)
-        print('packet size: '+str(size))
-        p = struct.pack('I', size)
-        frame = p + frame
-        client_socket.sendall(frame)
+    #print ('socket frame recieve')
+    print(frame.shape)
+    #by=bytearray(frame)
+    #if i==5:
+    frame = cPickle.dumps(frame)
+    size = len(frame)
+    print('packet size: '+str(size))
+    client_socket.sendall(struct.pack('I', size))
+    #p = struct.pack('I', size)
+    #frame = p + frame
+    client_socket.sendall(frame)
         #    i=0
         #i=i+1
         #plt.imshow(frame)
@@ -333,7 +340,7 @@ if __name__ == '__main__':
                 cv2.imshow("dis", dispcolor)
         dispcolor=cv2.applyColorMap(dispcolor,cv2.COLORMAP_OCEAN)
         if ctr==20:
-            connSS.send(dispcolor)
+            #connSS.send(dispcolor)
             ctr=0
         ctr=ctr+1
         cv2.putText(dispcolor, str((msx,msy))+"="+str(disparity[msy,msx]), (msx,msy), font, 0.4, (0, 0, 255), 2) 

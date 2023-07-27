@@ -68,10 +68,10 @@ def display_pc():
 
 while True:
   # Capturing and storing left and right camera images
-    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31L.png')[200:850, 600:1400]
-    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31R.png')[200:850, 600:1400]
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31L.png', cv2.IMREAD_GRAYSCALE)[200:850, 600:1400]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\dive31R.png', cv2.IMREAD_GRAYSCALE)[200:850, 600:1400]
+    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemL.png')[190:890, 560:1360]
+    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemR.png')[190:890, 560:1360]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemL.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemR.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
 
     Left_nice_raw= cv2.remap(rawimgL,
                 Left_Stereo_Map_x,
@@ -195,7 +195,10 @@ while True:
         #cv2.imshow('Disparity', disp)
         #cv2.imshow('Closing',closing)
         #cv2.imshow('Color Depth',disp_Color)
-
+    Q = np.float32([[1, 0, 0, 0],
+               [0, -1, 0, 0],
+               [0, 0, focal_length * 0.05, 0],
+               [0, 0, 0, 1]])
     points=cv2.reprojectImageTo3D(dispC, Q)
     #file1 = open("points.txt","w")
     #for x in points:
