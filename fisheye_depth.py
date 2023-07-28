@@ -68,10 +68,10 @@ def display_pc():
 
 while True:
   # Capturing and storing left and right camera images
-    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemL.png')[190:890, 560:1360]
-    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemR.png')[190:890, 560:1360]
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemL.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\oneemR.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
+    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handL.png')[190:890, 560:1360]
+    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handR.png')[190:890, 560:1360]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handL.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handR.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
 
     Left_nice_raw= cv2.remap(rawimgL,
                 Left_Stereo_Map_x,
@@ -131,9 +131,21 @@ while True:
 
     
     stereo =cv2.StereoSGBM.create(numDisparities=160, blockSize=1)
-    
+    stereo2 =cv2.StereoSGBM.create(numDisparities=160, blockSize=16)
+    stereo3 =cv2.StereoBM.create(numDisparities=160, blockSize=5)
+    disparity2 = stereo2.compute(Left_nice, Right_nice).astype(np.float32) / 16.0
+    disparity3 = stereo3.compute(Left_nice, Right_nice).astype(np.float32) / 16.0
+    dis2=disparity2.astype('uint8')
+    dispcolor2=cv2.applyColorMap(dis2,cv2.COLORMAP_OCEAN)  
+
+
+
+    dis3=disparity3.astype('uint8')
+    dispcolor3=cv2.applyColorMap(dis3,cv2.COLORMAP_OCEAN)  
+
+
     # computes disparity
-    disparity = stereo.compute(closing1, closing2).astype(np.float32) / 16.0
+    disparity = stereo.compute(Left_nice, Right_nice).astype(np.float32) / 16.0
     dis=disparity.astype('uint8')
     dispcolor=cv2.applyColorMap(dis,cv2.COLORMAP_OCEAN)
 
@@ -160,10 +172,10 @@ while True:
     wls_filter.setSigmaColor(sigma)
 
 
-    #filteredImg= wls_filter.filter(dispL,Left_nice,None,dispR)
+    filteredImg= wls_filter.filter(dispL,Left_nice,None,dispR)
     
-    #filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
-    #filteredImg = np.uint8(filteredImg)
+    filteredImg = cv2.normalize(src=filteredImg, dst=filteredImg, beta=0, alpha=255, norm_type=cv2.NORM_MINMAX);
+    filteredImg = np.uint8(filteredImg)
     #plt.imshow(filteredImg)
    # plt.show()
     #cv2.imshow('Disparity Map', filteredImg)
@@ -186,20 +198,20 @@ while True:
     dispC= dispc.astype(np.uint8)       
     #plt.imshow(closing)     
                            # Convert the type of the matrix from float32 to uint8, this way you can show the results with the function cv2.imshow()
-    disp_Color= cv2.applyColorMap(dispC,cv2.COLORMAP_OCEAN)         # Change the Color of the Picture into an Ocean Color_Map
-    #filt_Color= cv2.applyColorMap(filteredImg,cv2.COLORMAP_OCEAN) 
+    disp_Color= cv2.applyColorMap(dispC,cv2.COLORMAP_RAINBOW)         # Change the Color of the Picture into an Ocean Color_Map
+    filt_Color= cv2.applyColorMap(filteredImg,cv2.COLORMAP_OCEAN) 
     #print("filt color shape="+str(filt_Color.shape))
     print("dispC shape="+str(dispC.shape))
     print("distance shape="+str(distance.shape))
         # Show the result for the Depth_image
         #cv2.imshow('Disparity', disp)
         #cv2.imshow('Closing',closing)
-        #cv2.imshow('Color Depth',disp_Color)
+    cv2.imshow('Color Depth',disp_Color)
     Q = np.float32([[1, 0, 0, 0],
                [0, -1, 0, 0],
                [0, 0, focal_length * 0.05, 0],
                [0, 0, 0, 1]])
-    points=cv2.reprojectImageTo3D(dispC, Q)
+    points=cv2.reprojectImageTo3D(disparity2, Q)
     #file1 = open("points.txt","w")
     #for x in points:
     #    print()
@@ -213,7 +225,7 @@ while True:
 
 
     print('generating 3d point cloud...')
-    points=cv2.reprojectImageTo3D(closing, Q)
+    points=cv2.reprojectImageTo3D(disparity2, Q)
     print(points.shape)
     #print(points)
     #points = cv2.reprojectImageTo3D(dispC, Q)
@@ -290,6 +302,8 @@ while True:
     #dispcolor[300:400,300:400] = (128,128,23)
     dispcolor=cv2.applyColorMap(dis,cv2.COLORMAP_OCEAN)
     cv2.imshow('dis',dispcolor)
+    cv2.imshow('dis2',dispcolor2)
+    cv2.imshow('dis3',dispcolor3)
     cv2.setMouseCallback('dis', mouse_click)
     #plt.imshow(filt_Color)
     plt.show()

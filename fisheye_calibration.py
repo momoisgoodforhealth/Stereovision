@@ -70,7 +70,7 @@ objp[:,0, :2] = np.mgrid[0:CHECKERBOARD[0], 0:CHECKERBOARD[1]].T.reshape(-1, 2)*
 _img_shape = None
 objpointsLeft = [] # 3d point in real world space
 imgpointsLeft = [] # 2d points in image plane.
-
+count=0
 objpointsRight = [] # 3d point in real world space
 imgpointsRight = [] # 2d points in image plane.
 
@@ -81,15 +81,15 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 65
+total_photos = 188
 photo_counter = 0
 print ('Main cycle start')
 
 while photo_counter != total_photos:
   
   print ('Import pair No ' + str(photo_counter))
-  leftName = './underL/'+str(photo_counter)+'.png'
-  rightName = './underR/'+str(photo_counter)+'.png'
+  leftName = './cleanL/'+str(photo_counter)+'.png'
+  rightName = './cleanR/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
   photo_counter = photo_counter + 1
@@ -143,11 +143,11 @@ while photo_counter != total_photos:
                     if (SayMore): 
                         print ("thr_X: ", border_threshold_x, "thr_Y:", border_threshold_y)
                     x_thresh_bad = False
-                    if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
-                        x_thresh_bad = True
+                    #if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
+                    #    x_thresh_bad = True
                     y_thresh_bad = False
-                    if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
-                        y_thresh_bad = True
+                    #if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
+                    #    y_thresh_bad = True
                     if (y_thresh_bad==True) or (x_thresh_bad==True):
                         if (SayMore):
                             print("Chessboard too close to the side!", "X thresh: ", x_thresh_bad, "Y thresh: ", y_thresh_bad)
@@ -172,6 +172,8 @@ while photo_counter != total_photos:
                 
                 # Refine corners and add to array for processing
                 if ((retL == True) and (retR == True)):
+                    count=count+1
+                    print(count)
                     objpointsLeft.append(objp)
                     cv2.cornerSubPix(gray_small_left,cornersL,(3,3),(-1,-1),subpix_criteria)
                     imgpointsLeft.append(cornersL)
@@ -418,7 +420,7 @@ if (showStereoRectificationResults):
     # calibration images resolution. So 320x240 parameters are hardcoded
     # now. 
     try:
-        npzfile = np.load('./under_calibration_data/{}p/stereo_camera_calibration.npz'.format(1080))
+        npzfile = np.load('./under_calibration_data/{}p/stereo_camera_calibration.npz'.format(700))
     except:
        # print("Camera calibration data not found in cache, file " & './calibration_data/{}p/stereo_camera_calibration.npz'.format(240))
         exit(0)
@@ -429,10 +431,10 @@ if (showStereoRectificationResults):
     rightMapY = npzfile['rightMapY']
 
     #read image to undistort
-    photo_width = 1920#800#1920
-    photo_height = 1080#700#1080
-    image_width = 1920#800
-    image_height = 1080#700
+    photo_width = 800#1920
+    photo_height = 700#1080
+    image_width = 800
+    image_height = 700
     image_size = (image_width,image_height)
 
     # Rectifying left and right images

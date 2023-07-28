@@ -24,6 +24,8 @@ Q=np.float32([[ 1.00000000e+00,  0.00000000e+00,  0.00000000e+00, -3.34334817e+0
  [ 0.00000000e+00,  0.00000000e+00,  0.00000000e+00,  2.83711978e+02],
  [ 0.00000000e+00,  0.00000000e+00,  1.01527526e-02, -2.22518594e-01]])
 
+
+
 npzfile = np.load('./calibration_data/{}p/stereo_camera_calibration.npz'.format(700))
 cv_file = npzfile#cv2.FileStorage("improved_params3.xml", cv2.FILE_STORAGE_READ)
 Left_Stereo_Map_x = cv_file['leftMapX']
@@ -43,7 +45,7 @@ def capture_framesL(connection,queue):
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src='./videos/L0007.mov'#"rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
+    src='./videos/L0011.mov'#"rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
     capture = cv2.VideoCapture(src)
     print("left fps="+str(capture.get(cv2.CAP_PROP_FPS)))
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
@@ -94,7 +96,7 @@ def capture_framesR(connection,queue):
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src='./videos/R0007.mov'#"rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
+    src='./videos/R0011.mov'#"rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
     capture = cv2.VideoCapture(src)
     print("right fps="+str(capture.get(cv2.CAP_PROP_FPS)))
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
@@ -278,6 +280,13 @@ if __name__ == '__main__':
     stereo = cv2.StereoBM_create(numDisparities=160)
     soc.start()
     ctr=0
+    arrayarea=[]
+    global areaflag
+    areaflag=False
+    global areatrig
+    areatrig=False
+    global area
+    area=0
     while True:
         frameL=connL1.recv()
         frameR=connR1.recv()
@@ -346,11 +355,23 @@ if __name__ == '__main__':
         cv2.putText(dispcolor, str((msx,msy))+"="+str(disparity[msy,msx]), (msx,msy), font, 0.4, (0, 0, 255), 2) 
         cv2.putText(dispcolor, str(points[msy, msx]), (msx, msy-14), font, 0.4, (0, 0, 255), 2) 
         cv2.putText(dispcolor, str(distance[msy,msx])+"mm", (msx, msy-28), font, 0.4, (0, 0, 255), 2) 
+        if areaflag: cv2.putText(dispcolor,"Area="+str(area),(20, 30), font, 0.4, (0, 0, 255), 2)
+        if areatrig: cv2.putText(dispcolor,"area trigger",(25, 35), font, 0.4, (0, 0, 255), 2)
         cv2.imshow('dis',dispcolor)  
+        areatrig=False
 
         cv2.setMouseCallback("dis", mouse_click)
         if cv2.waitKey(25) & 0xFF == ord('q'):
             break  
+        if cv2.waitKey(33) == ord('a'):
+            arrayarea.append(points[msy, msx])
+            areatrig=True
+            if len(arrayarea)==4:
+                area=(1/2)*abs(((arrayarea[0][0]*arrayarea[1][1])+(arrayarea[1][0]*arrayarea[2][1])+(arrayarea[2][0]*arrayarea[3][1]))-((arrayarea[0][1]*arrayarea[1][0])+(arrayarea[1][1]*arrayarea[2][0])+(arrayarea[2][1]*arrayarea[3][0])))
+                print(area)
+                arrayarea=[]
+                areaflag=True
+            #print(arrayarea)
         #cv2.waitKey(0)   
 
     capture_processL.join()
