@@ -7,7 +7,7 @@ import io
 import socket
 import struct
 import time
-import pickle as cPickle
+import pickle
 import zlib
 from matplotlib import pyplot as plt
 
@@ -45,9 +45,11 @@ def capture_framesL(connection,queue):
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src='./videos/L0011.mov'#"rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
+    src="rtsp://10.6.10.161/live_stream"#'./videos/L0007.mov'
     capture = cv2.VideoCapture(src)
     print("left fps="+str(capture.get(cv2.CAP_PROP_FPS)))
+    print("l total frame="+str(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
+
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
     cv2.namedWindow("framel", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("framel", 480, 420)
@@ -96,9 +98,10 @@ def capture_framesR(connection,queue):
     width = int(3840 * scale_percent / 100)
     height = int(2160 * scale_percent / 100)
     dim = (width, height)
-    src='./videos/R0011.mov'#"rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
+    src="rtsp://10.6.10.162/live_stream"#'./videos/R0007.mov'
     capture = cv2.VideoCapture(src)
     print("right fps="+str(capture.get(cv2.CAP_PROP_FPS)))
+    print("r total frame="+str(capture.get(cv2.CAP_PROP_FRAME_COUNT)))
     capture.set(cv2.CAP_PROP_BUFFERSIZE,10)
     cv2.namedWindow("framer", cv2.WINDOW_NORMAL)
     cv2.resizeWindow("framer", 480, 420)  
@@ -186,7 +189,6 @@ def disparity(conL,conR):
 
 
 def sockett(conn):
-    i=0
     TCP_IP = '127.0.0.1'
     TCP_PORT = 1234
 
@@ -195,47 +197,27 @@ def sockett(conn):
     sock.listen(5)
     print("sock listen pass")
 
-    (client_socket, client_address) = sock.accept() # wait for client
-    print ('client accepted')
-    print (str(client_address))
-    #while True:
-    frame=cv2.imread('sc.png')#conn.recv()
 
-    #print ('socket frame recieve')
-    print(frame.shape)
-    #by=bytearray(frame)
-    #if i==5:
-    frame = cPickle.dumps(frame)
-    size = len(frame)
-    print('packet size: '+str(size))
-    client_socket.sendall(struct.pack('I', size))
-    #p = struct.pack('I', size)
-    #frame = p + frame
-    client_socket.sendall(frame)
-        #    i=0
-        #i=i+1
+    while True:
+        (client_socket, client_address) = sock.accept() # wait for client
+        print ('client accepted')
+        print (str(client_address))
+        frame=conn.recv()
+        print(frame.shape)
         #plt.imshow(frame)
-        #plt.savefig('disparity_image.jpg')
+        #plt.savefig('disparity_image.png')
+        connection = client_socket.makefile('wb')
+        image_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+
+        #filee = open("disparity_image.png", "rb")
+        #imgData = filee.read()
+        print(len(image_bytes))
+        client_socket.send(image_bytes)
+        print('sent!')        
+        client_socket.close()
+
         #frame = cv2.imencode('.jpg', frame)[1]
         #cv2.imshow('disparity_image.jpg',frame)
-        #if cv2.waitKey(25) & 0xFF == ord('q'):
-        #    break  
-
-        #by=bytearray(frame)
-        #print('byte size: '+str(by))
-        #data=frame
-        #frame = cPickle.dumps(frame)
-        #size = len(frame)
-
-        #print("frame size = "+ str(size))
-        #client_socket.sendall(by)
-        #frame = cPickle.dumps(frame)
-        #size = len(frame)
-        #print("frame size = "+ str(size))
-        #p = struct.pack('I', size)
-        #frame = p + frame
-        #client_socket.sendall(frame)
-
 
 if __name__ == '__main__':
     print('Starting video stream')
@@ -249,7 +231,7 @@ if __name__ == '__main__':
     capture_processL = mp.Process(target=capture_framesL, args=(connL2,qL,))
     capture_processR = mp.Process(target=capture_framesR, args=(connR2,qR,))
     #Ds = mp.Process(target=disparity, args=(connL1,connR1,))
-    disp=mp.Process(target=disparity, args=(connL1,connR1,))
+    #disp=mp.Process(target=disparity, args=(connL1,connR1,))
     soc=mp.Process(target=sockett, args=(connSR,))
 
     capture_processL.start()
@@ -287,6 +269,7 @@ if __name__ == '__main__':
     areatrig=False
     global area
     area=0
+    index=0
     while True:
         frameL=connL1.recv()
         frameR=connR1.recv()
@@ -294,7 +277,7 @@ if __name__ == '__main__':
         #frR=qR.get()object has no attribute 'get'
         #cv2.imshow('recL',frL)
         #cv2.imshow('recR',frR)
-    
+
         #cv2.imshow('recL',frameL)
         #cv2.imshow('recR',frameR)
         #if np.shape(frameL) == (): print("EMPTYL")
@@ -349,7 +332,7 @@ if __name__ == '__main__':
                 cv2.imshow("dis", dispcolor)
         dispcolor=cv2.applyColorMap(dispcolor,cv2.COLORMAP_OCEAN)
         if ctr==20:
-            #connSS.send(dispcolor)
+            connSS.send(dispcolor)
             ctr=0
         ctr=ctr+1
         cv2.putText(dispcolor, str((msx,msy))+"="+str(disparity[msy,msx]), (msx,msy), font, 0.4, (0, 0, 255), 2) 

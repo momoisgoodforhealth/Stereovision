@@ -6,11 +6,30 @@ import time
 import pickle
 import zlib
 
-client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client_socket.connect(('192.168.1.124', 8485))
-connection = client_socket.makefile('wb')
-src='./videos/L0007.mov'
+TCP_IP = '127.0.0.1'
+TCP_PORT = 1234
 
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+#client_socket.connect(('127.0.0.1', 1234))
+sock.bind((TCP_IP, TCP_PORT))
+sock.listen(5)
+print("sock listen pass")
+while True:
+    (client_socket, client_address) = sock.accept() # wait for client
+    print ('client accepted')
+    print (str(client_address)) 
+    connection = client_socket.makefile('wb')
+    #src='./videos/L0007.mov'
+    filee = open("trucL.png", "rb")
+    imgData = filee.read()
+    print(len(imgData))
+    time.sleep(5)
+    client_socket.send(imgData)
+    print('sent!')
+    #print(imgData)
+    client_socket.close()
+
+"""
 cam = cv2.VideoCapture(src)
 
 cam.set(3, 320);
@@ -35,3 +54,5 @@ while True:
     img_counter += 1
 
 cam.release()
+
+"""

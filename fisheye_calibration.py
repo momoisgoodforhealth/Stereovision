@@ -81,15 +81,15 @@ if (drawCorners):
 # Main processing cycle
 # We process all calibration images and fill up 'imgpointsLeft' and 'objpointsRight'
 # arrays with found coordinates of the chessboard
-total_photos = 188
+total_photos = 226
 photo_counter = 0
 print ('Main cycle start')
 
 while photo_counter != total_photos:
   
   print ('Import pair No ' + str(photo_counter))
-  leftName = './cleanL/'+str(photo_counter)+'.png'
-  rightName = './cleanR/'+str(photo_counter)+'.png'
+  leftName = './underL/'+str(photo_counter)+'.png'
+  rightName = './underR/'+str(photo_counter)+'.png'
   leftExists = os.path.isfile(leftName)
   rightExists = os.path.isfile(rightName)
   photo_counter = photo_counter + 1
@@ -143,11 +143,11 @@ while photo_counter != total_photos:
                     if (SayMore): 
                         print ("thr_X: ", border_threshold_x, "thr_Y:", border_threshold_y)
                     x_thresh_bad = False
-                    #if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
-                    #    x_thresh_bad = True
+                    if ((minRx<border_threshold_x) or (minLx<border_threshold_x)): # or (loadedX-maxRx < border_threshold_x) or (loadedX-maxLx < border_threshold_x)):
+                        x_thresh_bad = True
                     y_thresh_bad = False
-                    #if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
-                    #    y_thresh_bad = True
+                    if ((minRy<border_threshold_y) or (minLy<border_threshold_y)): # or (loadedY-maxRy < border_threshold_y) or (loadedY-maxLy < border_threshold_y)):
+                        y_thresh_bad = True
                     if (y_thresh_bad==True) or (x_thresh_bad==True):
                         if (SayMore):
                             print("Chessboard too close to the side!", "X thresh: ", x_thresh_bad, "Y thresh: ", y_thresh_bad)
