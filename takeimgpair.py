@@ -9,17 +9,17 @@ import time
 
 imageRR,imageLL=cv2.imread("", cv2.IMREAD_GRAYSCALE),cv2.imread("", cv2.IMREAD_GRAYSCALE)
 def left():
-    index=46
+    index=199
+    vidL = cv2.VideoCapture("rtsp://10.6.10.161/live_stream")
+    vidL.set(cv2.CAP_PROP_BUFFERSIZE, 0)
     global imageLL
-    while index<=65:
-        time.sleep(15)
-        vidL = cv2.VideoCapture("rtsp://10.6.10.161/live_stream")
-        vidL.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+    while index<=250:
+        time.sleep(4)
         resultL, imageL = vidL.read()
         imageLL=imageL[190:890, 560:1360]
         #cv2.imshow('l',imageLL)
         #cv2.waitKey(0)
-        cv2.imwrite("underL/"+str(index)+".png", imageL)
+        cv2.imwrite("cleanL/"+str(index)+".png", imageL)
         cv2.imshow('imagel',imageLL)
         index=index+1
         if cv2.waitKey(25) & 0xFF == ord('q'):
@@ -28,17 +28,17 @@ def left():
 
 
 def right():
-    index=46
+    index=199
+    vidR =cv2.VideoCapture("rtsp://10.6.10.162/live_stream")
+    vidR.set(cv2.CAP_PROP_BUFFERSIZE, 0)
     global imageRR
-    while index<=65:
-        time.sleep(15)
-        vidR =cv2.VideoCapture("rtsp://10.6.10.162/live_stream")
-        vidR.set(cv2.CAP_PROP_BUFFERSIZE, 0)
+    while index<=250:
+        time.sleep(4)
         resultR, imageR = vidR.read()
         imageRR=imageR[190:890, 560:1360]
         #cv2.imshow('r',imageRR)
         #cv2.waitKey(0)
-        cv2.imwrite("underR/"+str(index)+".png", imageR)
+        cv2.imwrite("cleanR/"+str(index)+".png", imageR)
         cv2.imshow('imager',imageRR)
         index=index+1
         if cv2.waitKey(25) & 0xFF == ord('q'):
