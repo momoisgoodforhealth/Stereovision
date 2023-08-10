@@ -3,10 +3,14 @@
 ### To Run Depth Map on Camera Stream / Pre-recorded Videos
 **realtime_stereo2.py**
 
-Uses multiprocessing/Processes and Pipes for intercommunication, 
+Uses multiprocessing/Processes and Pipes for intercommunication,
+
 Individual videos/camera feed are handled by seperate Processes.
+
 Socket communication with Unity is also handled by a seperate Process. These can be 'turned off' by commenting out the respective Pipe.send command at line 605. (connSS.send(dispcolor))
+
 YOLOv5 Object Detection uses MBARI benethic model. This also handled by a seperate Process, can be 'turned off' by commenting out line 567 (connPC2.send(disparity))
+
 Point Cloud Generation is also another seperate Process. Comment out  "connPC2.send(disparity), connPC22.send(colors)" to turn off. (line 568)
 
 *Changing video source:* Change src variable in 'def capture_framesL' and 'def capture_framesR' to livestream or video file. Livestream link = "rtsp://10.6.10.161/live_stream", video link ='./videos/L0008.mov'
