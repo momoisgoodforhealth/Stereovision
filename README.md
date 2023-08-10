@@ -1,6 +1,6 @@
 ## Depth Map Generation for Fisheye Stereo Camera with Distance Estimation
 
-### To Run Depth Map on Camera Stream / Pre-recorded Videos
+### To Run Depth Map & Distance Estimator on Camera Stream / Pre-recorded Videos
 **realtime_stereo2.py**
 
 Uses multiprocessing/Processes and Pipes for intercommunication,
