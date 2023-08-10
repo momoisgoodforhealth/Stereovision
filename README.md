@@ -1,6 +1,6 @@
 ## Depth Map Generation for Fisheye Stereo Camera with Distance Estimation
-
-### To Run Depth Map & Distance Estimator on Camera Stream / Pre-recorded Videos
+### IMPORTANT: DOES NOT CONTAIN './videos/' FOLDER DUE TO LARGE VIDEO SIZES
+### Final Integrated Program with Depth Map, Distance Est, Obj Tracking, Socket Comms (Unity)
 **realtime_stereo2.py**
 
 Uses multiprocessing/Processes and Pipes for intercommunication,
@@ -26,10 +26,12 @@ Point Cloud Generation is also another seperate Process. Comment out  "connPC2.s
 vid_disparity.py
 ### Disparity Map using juststereo.py calibration files:
 justdepth.py
-
-## Calibration Folder is repoed here:
-https://github.com/shovcha/CalibrationStuff
-
+### Basic Take Image Pair:
+opencv_takeimg.py
+### Graph Generation for Report
+graph.py, graph2.py
+### Socket Test
+socket_test.py
 
 
 ## Images for Final Calibraation
@@ -38,6 +40,8 @@ underL, underR
 ## Calibration Data
 is inside calibration_data/700p/
 
+## Others
+.ply files are point cloud.
 
 # These sources really helped
 
