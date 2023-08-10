@@ -68,16 +68,16 @@ end_header
         np.savetxt(f, verts, fmt='%f %f %f %d %d %d ')
 
 def display_pc():
-    cloud = io.read_point_cloud("fisheyePoint.ply")
+    cloud = io.read_point_cloud("fish.ply")
     visualization.draw_geometries([cloud])
 
 
 while True:
   # Capturing and storing left and right camera images
-    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handL.png')[190:890, 560:1360]
-    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handR.png')[190:890, 560:1360]
-    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handL.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
-    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\handR.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
+    rawimgL=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishL.png')[190:890, 560:1360]
+    rawimgR=cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishR.png')[190:890, 560:1360]
+    imgL= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishL.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
+    imgR= cv2.imread(r'C:\Users\Benjamin\Documents\calibration\fishR.png', cv2.IMREAD_GRAYSCALE)[190:890, 560:1360]
 
     Left_nice_raw= cv2.remap(rawimgL,
                 Left_Stereo_Map_x,
@@ -218,22 +218,11 @@ while True:
                [0, -1, 0, 0],
                [0, 0, focal_length * 0.05, 0],
                [0, 0, 0, 1]])
-    points=cv2.reprojectImageTo3D(disparity2, Q)
-    #file1 = open("points.txt","w")
-    #for x in points:
-    #    print()
-    #    for y in x:
-    #        for z in y:
-                
-    #file1.close()
-    print(points.shape)
-    print(points)
-
-
 
     print('generating 3d point cloud...')
     points=cv2.reprojectImageTo3D(disparity2, Q)
     print(points.shape)
+    
     #print(points)
     #points = cv2.reprojectImageTo3D(dispC, Q)
     colors = cv2.cvtColor(Left_nice_raw, cv2.COLOR_BGR2RGB)
@@ -311,6 +300,7 @@ while True:
     cv2.imshow('dis',dispcolor)
     cv2.imshow('dis2',dispcolor2)
     cv2.imshow('dis3',dispcolor3)
+    display_pc()
     cv2.setMouseCallback('dis', mouse_click)
     #plt.imshow(filt_Color)
     plt.show()

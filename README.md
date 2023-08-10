@@ -15,6 +15,11 @@ https://github.com/shovcha/CalibrationStuff
 
 
 
+## Images for Final Calibraation
+underL, underR
+
+## Calibration Data
+is inside calibration_data/700p/
 
 
 # Contains elements from
